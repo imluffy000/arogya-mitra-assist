@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Heart, Stethoscope, Play, Pause } from "lucide-react";
@@ -18,6 +19,8 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
   const [volume, setVolume] = useState(1);
   const [speechRate, setSpeechRate] = useState(1);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+  const [useAiDoctor, setUseAiDoctor] = useState(false);
+  const [apiKey, setApiKey] = useState('');
   
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
@@ -87,11 +90,76 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
     };
   }, [selectedLanguage, isListening]);
 
-  const handleVoiceInput = (transcript: string) => {
-    const response = getMedicalResponse(transcript, selectedLanguage);
-    setResponse(response);
-    if (isVoiceEnabled) {
-      speakResponse(response);
+  const callAiDoctor = async (userMessage: string): Promise<string> => {
+    if (!apiKey) {
+      return "Please enter your OpenAI API key to use the AI Doctor feature. 🔑";
+    }
+
+    try {
+      const systemPrompt = `You are ArogyaMitra's AI Doctor, a compassionate and knowledgeable medical assistant. You provide medical guidance in a friendly, empathetic manner while always emphasizing the importance of consulting licensed healthcare professionals for serious concerns.
+
+Key guidelines:
+- Always be empathetic and supportive
+- Provide helpful medical information and general advice
+- Include medicine recommendations when appropriate, but ALWAYS emphasize consulting a doctor first
+- Use emojis and friendly language to make conversations comfortable
+- Ask follow-up questions to better understand symptoms
+- Provide emergency guidance when necessary
+- Remember you're talking to people of all ages, so keep language accessible
+- Always end serious medical advice with "⚠️ Please consult a licensed healthcare professional for proper diagnosis and treatment."
+- Keep responses concise for voice interaction (under 150 words)
+- Respond in ${selectedLanguage === 'en' ? 'English' : selectedLanguage === 'hi' ? 'Hindi' : selectedLanguage === 'te' ? 'Telugu' : selectedLanguage === 'ta' ? 'Tamil' : selectedLanguage === 'bn' ? 'Bengali' : selectedLanguage === 'es' ? 'Spanish' : 'French'}`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage }
+          ],
+          max_tokens: 300,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error('AI Doctor API error:', error);
+      return "I'm having trouble connecting right now. Please try again or use the basic medical assistant mode. 😔";
+    }
+  };
+
+  const handleVoiceInput = async (transcript: string) => {
+    let responseText: string;
+    
+    try {
+      if (useAiDoctor && apiKey) {
+        responseText = await callAiDoctor(transcript);
+      } else {
+        responseText = getMedicalResponse(transcript, selectedLanguage);
+      }
+      
+      setResponse(responseText);
+      if (isVoiceEnabled) {
+        speakResponse(responseText);
+      }
+    } catch (error) {
+      console.error('Error getting response:', error);
+      const errorResponse = "I'm sorry, I'm having trouble right now. Please try again! 😔";
+      setResponse(errorResponse);
+      if (isVoiceEnabled) {
+        speakResponse(errorResponse);
+      }
     }
   };
 
@@ -108,20 +176,20 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
       },
       hi: {
         fever: "अरे वाह! 🤒 आपको बुखार है! मैं आपको बेहतर महसूस कराने में मदद करूंगा! 🦸‍♀️\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• पैरासिटामोल बड़ों के लिए\n• बच्चों के लिए बच्चों वाली दवा\n• इबुप्रोफेन केवल बड़ों के लिए\n\n⚠️ बहुत महत्वपूर्ण: आप बहुत बहादुर हैं! पर कोई भी दवा लेने से पहले हमेशा बड़ों और डॉक्टर से पूछें! 🤗",
-        headache: "अरे! 😔 सिर में दर्द हो रहा है! 🌟\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• पैरासिटामोल हल्के सिरदर्द के लिए\n• इबुप्रोफेन केवल बड़ों के लिए\n\n⚠️ बहुत महत्वपूर्ण: दवा लेने से पहले बड़ों और डॉक्टर से पूछें! याद रखें, आप किसी भी सिरदर्द से ज्यादा मजबूत हैं! 💪",
+        headache: "अरे! 😔 सिर में दर्द हो रहा है! 🌟\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• पैरासिटामोल हल्के सिरदर्द के लिए\n• इबुप्रोफेन केवल बड़ों के लिए\n\n⚠️ बहुत महत्वपूर्ण: दवा लेने से पहले बड़ों और डॉक्टर से पूछें! 💪",
         cough: "खांसी आ रही है! 😷 🌪️\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• खांसी की दवा\n• गले की गोलियाँ बड़े बच्चों/बड़ों के लिए\n• शहद वाली दवा (1 साल से बड़े बच्चों के लिए)\n\n⚠️ बहुत महत्वपूर्ण: कोई भी दवा लेने से पहले बड़ों और डॉक्टर से पूछें! जल्दी ठीक हो जाएंगे! 🌈",
         default: "नमस्ते बहादुर दोस्त! 😊 💡 గుర్తుంచుకోండి: నేను మందులను సూచించగలను, కానీ ఏదైనా మందు తీసుకునే ముందు ఎల్లప్పుడూ పెద్దలని మరియు డాక్టర్‌ని అడగాలి! 👨‍⚕️👩‍⚕️"
       },
       te: {
         fever: "అయ్యో! 🤒 మీకు జ్వరం వచ్చిందా! 🦸‍♀️\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• పెరాసిటమాల్ పెద్దలకు\n• పిల్లలకు పిల్లల మందు\n\n⚠️ చాలా ముఖ్యం: మీరు చాలా ధైర్యవంతులు! కానీ ఏ మందు అయినా తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 🤗",
         headache: "అయ్యో! 😔 తల నొప్పిగా ఉందా! 🌟\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• పెరాసిటమాల్ తేలికపాటి తలనొప్పికి\n\n⚠️ చాలా ముఖ్యం: మందు తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 💪",
-        cough: "దగ్ గుమ్! 😷 🌪️\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• దగ్గు మందు\n• గొంతు మாத்திரைகளు పెద్దలకు\n\n⚠️ చాలా ముఖ్యం: ఏ మందు అయినా తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 🌈",
+        cough: "దగ్ గుమ్! 😷 🌪️\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• దగ్గు మందు\n• గొంతు మాత్రికలు పెద్దలకు\n\n⚠️ చాలా ముఖ్యం: ఏ మందు అయినా తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 🌈",
         default: "నమస్కారం ధైర్యవంతుడా! 😊 💡 గుర్తుంచుకోండి: నేను మందులను సూచించగలను, కానీ ఏదైనా మందు తీసుకునే ముందు ఎల్లప్పుడూ పెద్దలని మరియు డాక్టర్‌ని అడగాలి! 👨‍⚕️👩‍⚕️"
       },
       ta: {
-        fever: "அய்யோ! 🤒 உங்களுக்கு காய்ச்சல் வந்துள்ளது! 🦸‍♀️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனுமதியுடன் மட்டுமே!):\n• பாராசிட்டமால் பெரியவர்களுக்கு\n• குழந்தைகளுக்கு குழந்தைகள் மருந்து\n\n⚠️ மிக முக்கியம்: நீங்கள் மிகவும் தைரியமானவர்! ஆனால் எந்த மருந்தும் எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 🤗",
-        headache: "அய்யோ! 😔 தலைவலி இருக்கிறதா! 🌟\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனுமதியுடன் மட்டுமே!):\n• பாராசிட்டமால் லேசான தலைவலிக்கு\n\n⚠️ மிக முக்கியம்: மருந்து எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 💪",
-        cough: "இருமல்! 😷 🌪️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனுமதியுடன் மட்டுமே!):\n• இருமல் மருந்து\n• தொண்டை மாத்திரைகள் பெரியவர்களுக்கு\n\n⚠️ மிக முக்கியம்: எந்த மருந்தும் எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 🌈",
+        fever: "அய்யோ! 🤒 உங்களுக்கு காய்ச்சல் வந்துள்ளது! 🦸‍♀️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুமதியுடன் மட்டுமே!):\n• பாராசிட்டமால் பெரியவர்களுக்கு\n• குழந்தைகளுக்கு குழந்தைகள் மருந்து\n\n⚠️ மிக முக்கியம்: நீங்கள் மிகவும் தைரியமானவர்! ஆனால் எந்த மருந்தும் எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 🤗",
+        headache: "அய்யோ! 😔 தலைவலி இருக்கிறதா! 🌟\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুমதியுடன் மட்டுமே!):\n• பாராசிட்டமால் லேசான தலைவலிக்கு\n\n⚠️ மிக முக்கியம்: மருந்து எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 💪",
+        cough: "இருமல்! 😷 🌪️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুমதியுடன் மட்டுமே!):\n• இருமல் மருந்து\n• தொண்டை மாத்திரைகள் பெரியவர்களுக்கு\n\n⚠️ மிக முக்கியம்: எந்த மருந்தும் எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 🌈",
         default: "வணக்கம் தைரியமான நண்பரே! 😊 💡 நினைவில் வைக்கவும்: நான் மருந்துகளை பரிந்துரைக்க முடியும், ஆனால் எந்த மருந்தும் எடுக்கும் முன் எப்போதும் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேட்க வேண்டும்! 👨‍⚕️👩‍⚕️"
       },
       bn: {
@@ -207,7 +275,7 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
       recognitionRef.current.start();
       toast({
         title: "Listening! 👂",
-        description: "Speak now! I'm listening to help you! 😊",
+        description: useAiDoctor ? "Speak to the AI Doctor! I'm listening! 🩺" : "Speak now! I'm listening to help you! 😊",
       });
     } catch (error) {
       console.error('Error starting recognition:', error);
@@ -268,6 +336,35 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
           </div>
         </div>
 
+        {/* AI Doctor Toggle */}
+        <div className="mb-6 bg-gradient-to-r from-purple-400 to-blue-500 text-white p-4 rounded-lg shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Stethoscope className="h-5 w-5" />
+              <span className="font-bold">🤖 AI Doctor Mode</span>
+            </div>
+            <Button
+              onClick={() => setUseAiDoctor(!useAiDoctor)}
+              variant={useAiDoctor ? "secondary" : "outline"}
+              className="bg-white text-purple-600 hover:bg-gray-100"
+            >
+              {useAiDoctor ? "Enabled" : "Enable AI Doctor"}
+            </Button>
+          </div>
+          {useAiDoctor && (
+            <div className="mt-3">
+              <Input
+                type="password"
+                placeholder="Enter your OpenAI API key..."
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="bg-white text-gray-800"
+              />
+              <p className="text-xs mt-1 opacity-80">Your API key is only stored locally and never shared.</p>
+            </div>
+          )}
+        </div>
+
         {/* Health Tip Banner */}
         <div className="mb-6 bg-gradient-to-r from-pink-400 to-purple-500 text-white p-4 rounded-lg shadow-lg animate-scale-in">
           <div className="flex items-center gap-2 mb-2">
@@ -283,7 +380,7 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
             <CardTitle className="flex items-center gap-2 justify-center text-2xl">
               <Stethoscope className="h-6 w-6 animate-pulse" />
               <Heart className="h-5 w-5 text-pink-300 animate-bounce" />
-              Voice Assistant - ArogyaMitra
+              {useAiDoctor ? "AI Doctor Voice" : "Voice Assistant"} - ArogyaMitra
               <Heart className="h-5 w-5 text-pink-300 animate-bounce" />
             </CardTitle>
           </CardHeader>
@@ -309,7 +406,7 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
                   ) : (
                     <>
                       <Mic className="h-12 w-12 mb-2" />
-                      Talk to Me!
+                      {useAiDoctor ? "Talk to AI Doctor!" : "Talk to Me!"}
                     </>
                   )}
                 </Button>
@@ -398,7 +495,7 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
               <div className="bg-gradient-to-r from-green-50 to-pink-50 p-4 rounded-lg border-2 border-green-200 animate-fade-in">
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
                   <Heart className="h-4 w-4 text-green-600" />
-                  ArogyaMitra says:
+                  {useAiDoctor ? "AI Doctor says:" : "ArogyaMitra says:"}
                 </h3>
                 <p className="text-gray-700 whitespace-pre-line leading-relaxed">{response}</p>
               </div>
@@ -426,6 +523,7 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
               <ul className="space-y-1 text-sm">
                 <li>• 🎤 Click "Talk to Me!" button to start speaking</li>
                 <li>• 🗣️ Tell me about your symptoms or ask health questions</li>
+                <li>• 🤖 Enable AI Doctor mode for advanced medical conversations</li>
                 <li>• 🔊 I'll speak back to you in your chosen language</li>
                 <li>• 🎛️ Adjust speed and volume for your comfort</li>
                 <li>• 👨‍⚕️ Always consult a real doctor for serious concerns!</li>
