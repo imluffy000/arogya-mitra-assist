@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, Phone, Mic, MapPin, Heart, Shield, Baby, Users, Stethoscope, Activity } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getTranslation } from "@/utils/translations";
+import { getTranslation, getTranslationArray } from "@/utils/translations";
 import LanguageSelector from "@/components/LanguageSelector";
 import ChatBot from "@/components/ChatBot";
 import EmergencyPortal from "@/components/EmergencyPortal";
@@ -190,7 +190,7 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
               <h3 className="text-xl font-semibold text-pink-700">{getTranslation(selectedLanguage, 'forChildren')}</h3>
             </div>
             <ul className="space-y-2 text-sm text-gray-600">
-              {(getTranslation(selectedLanguage, 'childFeatures') as string[]).map((feature, index) => (
+              {getTranslationArray(selectedLanguage, 'childFeatures').map((feature, index) => (
                 <li key={index}>• {feature}</li>
               ))}
             </ul>
@@ -201,7 +201,7 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
               <h3 className="text-xl font-semibold text-blue-700">{getTranslation(selectedLanguage, 'forElderly')}</h3>
             </div>
             <ul className="space-y-2 text-sm text-gray-600">
-              {(getTranslation(selectedLanguage, 'elderlyFeatures') as string[]).map((feature, index) => (
+              {getTranslationArray(selectedLanguage, 'elderlyFeatures').map((feature, index) => (
                 <li key={index}>• {feature}</li>
               ))}
             </ul>

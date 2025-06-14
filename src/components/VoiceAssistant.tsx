@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Heart, Stethoscope, Play, Pause } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getTranslation } from "@/utils/translations";
+import { getTranslation, getTranslationArray } from "@/utils/translations";
 import LanguageSelector from "@/components/LanguageSelector";
 
 interface VoiceAssistantProps {
@@ -500,7 +501,7 @@ Key guidelines:
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border-2 border-yellow-200">
               <h3 className="font-semibold mb-2 text-center">{getTranslation(selectedLanguage, 'howToUse')}</h3>
               <ul className="space-y-1 text-sm">
-                {(getTranslation(selectedLanguage, 'voiceInstructions') as string[]).map((instruction, index) => (
+                {getTranslationArray(selectedLanguage, 'voiceInstructions').map((instruction, index) => (
                   <li key={index}>• {instruction}</li>
                 ))}
               </ul>
