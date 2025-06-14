@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -145,4 +144,190 @@
 
 .voice-gradient {
   background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+}
+
+/* Enhanced animations for medical awareness and accessibility */
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.heartbeat {
+  animation: heartbeat 2s infinite;
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.rainbow-bg {
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: rainbow 15s ease infinite;
+}
+
+/* Accessibility enhancements */
+.large-text {
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+.high-contrast {
+  filter: contrast(1.2);
+}
+
+.reduced-motion {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Focus indicators for accessibility */
+.focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Medical themed button styles */
+.medical-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+}
+
+.medical-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.emergency-button {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+  animation: pulse 2s infinite;
+}
+
+.voice-button {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+}
+
+/* Child-friendly animations */
+.bounce-in {
+  animation: bounceIn 0.6s ease-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Elderly-friendly enhancements */
+.senior-friendly {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+}
+
+.senior-button {
+  min-height: 60px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 12px;
+}
+
+/* Medical awareness animations */
+.awareness-pulse {
+  animation: awareness-pulse 3s ease-in-out infinite;
+}
+
+@keyframes awareness-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.health-tip {
+  background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+  border: 2px solid #ff9a9e;
+  border-radius: 15px;
+  padding: 20px;
+  margin: 20px 0;
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Responsive text scaling for accessibility */
+@media (max-width: 768px) {
+  .large-text {
+    font-size: 1.1rem;
+  }
+  
+  .senior-friendly {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+}
+
+/* Dark mode support for medical themes */
+@media (prefers-color-scheme: dark) {
+  .medical-gradient {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  }
+  
+  .emergency-gradient {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  }
+  
+  .voice-gradient {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  }
 }
