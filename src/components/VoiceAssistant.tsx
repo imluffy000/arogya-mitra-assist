@@ -1,8 +1,8 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Heart, Stethoscope, Play, Pause } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -13,6 +13,7 @@ interface VoiceAssistantProps {
 const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
   const [volume, setVolume] = useState(1);
@@ -24,6 +25,16 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  const languages = [
+    { code: 'en', name: 'English', voice: 'en-US' },
+    { code: 'hi', name: 'हिंदी (Hindi)', voice: 'hi-IN' },
+    { code: 'te', name: 'తెలుగు (Telugu)', voice: 'te-IN' },
+    { code: 'ta', name: 'தமிழ் (Tamil)', voice: 'ta-IN' },
+    { code: 'bn', name: 'বাংলা (Bengali)', voice: 'bn-IN' },
+    { code: 'es', name: 'Español (Spanish)', voice: 'es-ES' },
+    { code: 'fr', name: 'Français (French)', voice: 'fr-FR' }
+  ];
 
   useEffect(() => {
     // Initialize speech synthesis
@@ -77,7 +88,7 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
         synthRef.current.cancel();
       }
     };
-  }, [isListening]);
+  }, [selectedLanguage, isListening]);
 
   const callAiDoctor = async (userMessage: string): Promise<string> => {
     if (!apiKey) {
@@ -97,7 +108,7 @@ Key guidelines:
 - Remember you're talking to people of all ages, so keep language accessible
 - Always end serious medical advice with "⚠️ Please consult a licensed healthcare professional for proper diagnosis and treatment."
 - Keep responses concise for voice interaction (under 150 words)
-- Respond in English`;
+- Respond in ${selectedLanguage === 'en' ? 'English' : selectedLanguage === 'hi' ? 'Hindi' : selectedLanguage === 'te' ? 'Telugu' : selectedLanguage === 'ta' ? 'Tamil' : selectedLanguage === 'bn' ? 'Bengali' : selectedLanguage === 'es' ? 'Spanish' : 'French'}`;
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -135,7 +146,7 @@ Key guidelines:
       if (useAiDoctor && apiKey) {
         responseText = await callAiDoctor(transcript);
       } else {
-        responseText = getMedicalResponse(transcript);
+        responseText = getMedicalResponse(transcript, selectedLanguage);
       }
       
       setResponse(responseText);
@@ -152,19 +163,66 @@ Key guidelines:
     }
   };
 
-  const getMedicalResponse = (userInput: string): string => {
+  const getMedicalResponse = (userInput: string, language: string): string => {
     const lowerInput = userInput.toLowerCase();
     
     // Enhanced responses for children and elderly with medicine recommendations
-    if (lowerInput.includes('fever')) {
-      return "Oh my! 🤒 You have a fever! Let me help you feel better! Your body is like a brave soldier fighting germs! 🦸‍♀️\n\nHere's what heroes do:\n• Rest like a sleeping superhero 😴\n• Drink water like it's your super power! 💧\n• Put a cool cloth on your forehead ❄️\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Paracetamol/Acetaminophen for adults\n• Children's Tylenol for kids (ask parents first!)\n• Ibuprofen for adults only\n\n⚠️ SUPER IMPORTANT: You're so brave! But always tell a grown-up and ask a doctor before taking ANY medicine! Call doctor if fever is over 102°F! 🤗";
-    } else if (lowerInput.includes('headache')) {
-      return "Ouch! 😔 Your head hurts! Let's make it feel better together! 🌟\n\nTry these magical remedies:\n• Rest in a quiet, cozy place 🏠\n• Drink water slowly - your brain loves water! 🧠💧\n• Breathe deeply like you're smelling beautiful flowers 🌸\n• Ask someone to gently massage your temples 👐\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Paracetamol/Acetaminophen for mild headaches\n• Ibuprofen for adults (not for children under 12)\n• NEVER give aspirin to children!\n\n⚠️ SUPER IMPORTANT: Ask a grown-up and doctor before taking ANY medicine! Get help if headache is very bad! Remember, you're stronger than any headache! 💪";
-    } else if (lowerInput.includes('cough')) {
-      return "Cough, cough! 😷 Don't worry, coughing is your body's way of cleaning itself! 🌪️\n\nLet's help your throat feel better:\n• Drink warm honey water (nature's candy!) 🍯\n• Breathe steam from a warm shower 🚿\n• Rest your voice like it's sleeping 😴\n• Gargle with warm salt water if you're old enough 🧂\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Cough syrup for persistent cough\n• Throat lozenges for older kids/adults\n• Honey-based remedies (for kids over 1 year)\n\n⚠️ SUPER IMPORTANT: Always ask a grown-up and doctor before taking ANY medicine! Most coughs get better on their own. You'll feel better soon, I promise! 🌈";
+    const responses = {
+      en: {
+        fever: "Oh my! 🤒 You have a fever! Let me help you feel better! Your body is like a brave soldier fighting germs! 🦸‍♀️\n\nHere's what heroes do:\n• Rest like a sleeping superhero 😴\n• Drink water like it's your super power! 💧\n• Put a cool cloth on your forehead ❄️\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Paracetamol/Acetaminophen for adults\n• Children's Tylenol for kids (ask parents first!)\n• Ibuprofen for adults only\n\n⚠️ SUPER IMPORTANT: You're so brave! But always tell a grown-up and ask a doctor before taking ANY medicine! Call doctor if fever is over 102°F! 🤗",
+        headache: "Ouch! 😔 Your head hurts! Let's make it feel better together! 🌟\n\nTry these magical remedies:\n• Rest in a quiet, cozy place 🏠\n• Drink water slowly - your brain loves water! 🧠💧\n• Breathe deeply like you're smelling beautiful flowers 🌸\n• Ask someone to gently massage your temples 👐\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Paracetamol/Acetaminophen for mild headaches\n• Ibuprofen for adults (not for children under 12)\n• NEVER give aspirin to children!\n\n⚠️ SUPER IMPORTANT: Ask a grown-up and doctor before taking ANY medicine! Get help if headache is very bad! Remember, you're stronger than any headache! 💪",
+        cough: "Cough, cough! 😷 Don't worry, coughing is your body's way of cleaning itself! 🌪️\n\nLet's help your throat feel better:\n• Drink warm honey water (nature's candy!) 🍯\n• Breathe steam from a warm shower 🚿\n• Rest your voice like it's sleeping 😴\n• Gargle with warm salt water if you're old enough 🧂\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Cough syrup for persistent cough\n• Throat lozenges for older kids/adults\n• Honey-based remedies (for kids over 1 year)\n\n⚠️ SUPER IMPORTANT: Always ask a grown-up and doctor before taking ANY medicine! Most coughs get better on their own. You'll feel better soon, I promise! 🌈",
+        default: "Hello there, brave friend! 😊 I'm here to help you feel better! 🤗\n\nTo give you the best help, can you tell me:\n• What part of your body doesn't feel good? 🤷‍♀️\n• When did you start feeling this way? ⏰\n• What makes it feel better or worse? 🤔\n\n💡 Remember: I can suggest medicines, but you must ALWAYS tell a grown-up you trust and ask a doctor before taking ANY medicine! Never take medicine alone! 👨‍⚕️👩‍⚕️\n\nRemember, you're very brave for asking about your health! 🦸‍♂️"
+      },
+      hi: {
+        fever: "अरे वाह! 🤒 आपको बुखार है! मैं आपको बेहतर महसूस कराने में मदद करूंगा! 🦸‍♀️\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• पैरासिटामोल बड़ों के लिए\n• बच्चों के लिए बच्चों वाली दवा\n• इबुप्रोफेन केवल बड़ों के लिए\n\n⚠️ बहुत महत्वपूर्ण: आप बहुत बहादुर हैं! पर कोई भी दवा लेने से पहले हमेशा बड़ों और डॉक्टर से पूछें! 🤗",
+        headache: "अरे! 😔 सिर में दर्द हो रहा है! 🌟\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• पैरासिटामोल हल्के सिरदर्द के लिए\n• इबुप्रोफेन केवल बड़ों के लिए\n\n⚠️ बहुत महत्वपूर्ण: दवा लेने से पहले बड़ों और डॉक्टर से पूछें! 💪",
+        cough: "खांसी आ रही है! 😷 🌪️\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• खांसी की दवा\n• गले की गोलियाँ बड़े बच्चों/बड़ों के लिए\n• शहद वाली दवा (1 साल से बड़े बच्चों के लिए)\n\n⚠️ बहुत महत्वपूर्ण: कोई भी दवा लेने से पहले बड़ों और डॉक्टर से पूछें! जल्दी ठीक हो जाएंगे! 🌈",
+        default: "नमस्ते बहादुर दोस्त! 😊 💡 గుర్తుంచుకోండి: నేను మందులను సూచించగలను, కానీ ఏదైనా మందు తీసుకునే ముందు ఎల్లప్పుడూ పెద్దలని మరియు డాక్టర్‌ని అడగాలి! 👨‍⚕️👩‍⚕️"
+      },
+      te: {
+        fever: "అయ్యో! 🤒 మీకు జ్వరం వచ్చిందా! 🦸‍♀️\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• పెరాసిటమాల్ పెద్దలకు\n• పిల్లలకు పిల్లల మందు\n\n⚠️ చాలా ముఖ్యం: మీరు చాలా ధైర్యవంతులు! కానీ ఏ మందు అయినా తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 🤗",
+        headache: "అయ్యో! 😔 తల నొప్పిగా ఉందా! 🌟\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• పెరాసిటమాల్ తేలికపాటి తలనొప్పికి\n\n⚠️ చాలా ముఖ్యం: మందు తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 💪",
+        cough: "దగ్ గుమ్! 😷 🌪️\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• దగ్గు మందు\n• గొంతు మాత్రికలు పెద్దలకు\n\n⚠️ చాలా ముఖ్యం: ఏ మందు అయినా తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 🌈",
+        default: "నమస్కారం ధైర్యవంతుడా! 😊 💡 గుర్తుంచుకోండి: నేను మందులను సూచించగలను, కానీ ఏదైనా మందు తీసుకునే ముందు ఎల్లప్పుడూ పెద్దలని మరియు డాక్టర్‌ని అడగాలి! 👨‍⚕️👩‍⚕️"
+      },
+      ta: {
+        fever: "அய்யோ! 🤒 உங்களுக்கு காய்ச்சல் வந்துள்ளது! 🦸‍♀️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুமதியுடன் மட்டுமே!):\n• பாராசிட்டமால் பெரியவர்களுக்கு\n• குழந்தைகளுக்கு குழந்தைகள் மருந்து\n\n⚠️ மிக முக்கியம்: நீங்கள் மிகவும் தைரியமானவர்! ஆனால் எந்த மருந்தும் எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 🤗",
+        headache: "அய்யோ! 😔 தலைவலி இருக்கிறதா! 🌟\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুমதியுடன் மட்டுமே!):\n• பாராசிட்டமால் லேசான தலைவலிக்கு\n\n⚠️ மிக முக்கியம்: மருந்து எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 💪",
+        cough: "இருமல்! 😷 🌪️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুমதியுடன் மட்டுமே!):\n• இருமல் மருந்து\n• தொண்டை மாத்திரைகள் பெரியவர்களுக்கு\n\n⚠️ மிக முக்கியம்: எந்த மருந்தும் எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 🌈",
+        default: "வணக்கம் தைரியமான நண்பரே! 😊 💡 நினைவில் வைக்கவும்: நான் மருந்துகளை பரிந்துரைக்க முடியும், ஆனால் எந்த மருந்தும் எடுக்கும் முன் எப்போதும் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேட்க வேண்டும்! 👨‍⚕️👩‍⚕️"
+      },
+      bn: {
+        fever: "হায়! 🤒 আপনার জ্বর হয়েছে! 🦸‍♀️\n\n💊 সাহায্যকারী ওষুধ (শুধুমাত্র ডাক্তারের অনুমতিতে!):\n• প্যারাসিটামল বড়দের জন্য\n• শিশুদের জন্য শিশুদের ওষুধ\n\n⚠️ খুবই গুরুত্বপূর্ণ: আপনি খুব সাহসী! কিন্তু কোনো ওষুধ খাওয়ার আগে সবসময় বড়দের এবং ডাক্তারকে জিজ্ঞাসা করুন! 🤗",
+        headache: "আহ! 😔 মাথাব্যথা হচ্ছে! 🌟\n\n💊 সাহায্যকারী ওষুধ (শুধুমাত্র ডাক্তারের অনুমতিতে!):\n• প্যারাসিটামল হালকা মাথাব্যথার জন্য\n\n⚠️ খুবই গুরুত্বপূর্ণ: ওষুধ খাওয়ার আগে বড়দের এবং ডাক্তারকে জিজ্ঞাসা করুন! 💪",
+        cough: "কাশি! 😷 🌪️\n\n💊 সাহায্যকারী ওষুধ (শুধুমাত্র ডাক্তারের অনুমতিতে!):\n• কাশির ওষুধ\n• গলার ট্যাবলেট বড়দের জন্য\n\n⚠️ খুবই গুরুত্বপূর্ণ: কোনো ওষুধ খাওয়ার আগে বড়দের এবং ডাক্তারকে জিজ্ঞাসা করুন! 🌈",
+        default: "নমস্কার সাহসী বন্ধু! 😊 💡 মনে রাখবেন: আমি ওষুধের পরামর্শ দিতে পারি, তবে কোনো ওষুধ খাওয়ার আগে সবসময় বড়দের এবং ডাক্তারকে জিজ্ঞাসা করতে হবে! 👨‍⚕️👩‍⚕️"
+      },
+      es: {
+        fever: "¡Ay, no! 🤒 ¡Tienes fiebre! 🦸‍♀️\n\n💊 Medicinas que pueden ayudar (¡SOLO con permiso del doctor!):\n• Paracetamol para adultos\n• Medicina para niños\n\n⚠️ MUY IMPORTANTE: ¡Eres muy valiente! ¡Pero siempre pregunta a un adulto y doctor antes de tomar cualquier medicina! 🤗",
+        headache: "¡Ay! 😔 ¡Te duele la cabeza! 🌟\n\n💊 Medicinas que pueden ayudar (¡SOLO con permiso del doctor!):\n• Paracetamol para dolores leves\n\n⚠️ MUY IMPORTANTE: ¡Pregunta a un adulto y doctor antes de tomar medicina! 💪",
+        cough: "¡Tos! 😷 🌪️\n\n💊 Medicinas que pueden ayudar (¡SOLO con permiso del doctor!):\n• Jarabe para la tos\n• Pastillas para la garganta para adultos\n\n⚠️ MUY IMPORTANTE: ¡Pregunta a un adulto y doctor antes de tomar cualquier medicina! 🌈",
+        default: "¡Hola amigo valiente! 😊 💡 Recuerda: ¡Puedo sugerir medicinas, pero siempre debes preguntar a un adulto y doctor antes de tomar CUALQUIER medicina! 👨‍⚕️👩‍⚕️"
+      },
+      fr: {
+        fever: "Oh là là! 🤒 Tu as de la fièvre! 🦸‍♀️\n\n💊 Médicaments qui peuvent aider (SEULEMENT avec permission du docteur!):\n• Paracétamol pour les adultes\n• Médicament pour enfants\n\n⚠️ TRÈS IMPORTANT: Tu es très courageux! Mais demande toujours à un adulte et docteur avant de prendre des médicaments! 🤗",
+        headache: "Aïe! 😔 Tu as mal à la tête! 🌟\n\n💊 Médicaments qui peuvent aider (SEULEMENT avec permission du docteur!):\n• Paracétamol pour les douleurs légères\n\n⚠️ TRÈS IMPORTANT: Demande à un adulte et docteur avant de prendre des médicaments! 💪",
+        cough: "Toux! 😷 🌪️\n\n💊 Médicaments qui peuvent aider (SEULEMENT avec permission du docteur!):\n• Sirop contre la toux\n• Pastilles pour la gorge pour adultes\n\n⚠️ TRÈS IMPORTANT: Demande à un adulte et docteur avant de prendre des médicaments! 🌈",
+        default: "Bonjour ami courageux! 😊 💡 Souviens-toi: Je peux suggérer des médicaments, mais tu dois TOUJOURS demander à un adulte et docteur avant de prendre des médicaments! 👨‍⚕️👩‍⚕️"
+      }
+    };
+
+    const languageResponses = responses[language as keyof typeof responses] || responses.en;
+    
+    if (lowerInput.includes('fever') || lowerInput.includes('बुखार') || lowerInput.includes('జ్వరం') || lowerInput.includes('காய்ச்சல்') || lowerInput.includes('জ্বর') || lowerInput.includes('fiebre') || lowerInput.includes('fièvre')) {
+      return languageResponses.fever;
+    } else if (lowerInput.includes('headache') || lowerInput.includes('सिरदर्द') || lowerInput.includes('తలనొప్పి') || lowerInput.includes('தலைவலி') || lowerInput.includes('মাথাব্যথা') || lowerInput.includes('dolor de cabeza') || lowerInput.includes('mal de tête')) {
+      return languageResponses.headache;
+    } else if (lowerInput.includes('cough') || lowerInput.includes('खांसी') || lowerInput.includes('దగ్గు') || lowerInput.includes('இருமல்') || lowerInput.includes('কাশি') || lowerInput.includes('tos') || lowerInput.includes('toux')) {
+      return languageResponses.cough;
     }
     
-    return "Hello there, brave friend! 😊 I'm here to help you feel better! 🤗\n\nTo give you the best help, can you tell me:\n• What part of your body doesn't feel good? 🤷‍♀️\n• When did you start feeling this way? ⏰\n• What makes it feel better or worse? 🤔\n\n💡 Remember: I can suggest medicines, but you must ALWAYS tell a grown-up you trust and ask a doctor before taking ANY medicine! Never take medicine alone! 👨‍⚕️👩‍⚕️\n\nRemember, you're very brave for asking about your health! 🦸‍♂️";
+    return languageResponses.default;
   };
 
   const speakResponse = (text: string) => {
@@ -174,8 +232,9 @@ Key guidelines:
     synthRef.current.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
+    const selectedLang = languages.find(lang => lang.code === selectedLanguage);
     
-    utterance.lang = 'en-US';
+    utterance.lang = selectedLang?.voice || 'en-US';
     utterance.volume = volume;
     utterance.rate = speechRate;
     utterance.pitch = 1.2; // Slightly higher pitch for friendliness
@@ -209,7 +268,8 @@ Key guidelines:
       return;
     }
 
-    recognitionRef.current.lang = 'en-US';
+    const selectedLang = languages.find(lang => lang.code === selectedLanguage);
+    recognitionRef.current.lang = selectedLang?.voice || 'en-US';
     
     try {
       recognitionRef.current.start();
@@ -260,6 +320,20 @@ Key guidelines:
             <ArrowLeft className="h-4 w-4" />
             Back to Home
           </Button>
+          <div className="flex items-center gap-2">
+            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+              <SelectTrigger className="w-48 hover:scale-105 transition-transform">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map(lang => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* AI Doctor Toggle */}
@@ -281,12 +355,12 @@ Key guidelines:
             <div className="mt-3">
               <Input
                 type="password"
-                placeholder="Enter your OpenAI API key"
+                placeholder="Enter your OpenAI API key..."
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 className="bg-white text-gray-800"
               />
-              <p className="text-xs mt-1 opacity-80">Your API key is stored locally and never shared</p>
+              <p className="text-xs mt-1 opacity-80">Your API key is only stored locally and never shared.</p>
             </div>
           )}
         </div>
@@ -295,9 +369,9 @@ Key guidelines:
         <div className="mb-6 bg-gradient-to-r from-pink-400 to-purple-500 text-white p-4 rounded-lg shadow-lg animate-scale-in">
           <div className="flex items-center gap-2 mb-2">
             <Heart className="h-5 w-5 animate-pulse" />
-            <span className="font-bold">💡 Health Tip</span>
+            <span className="font-bold">💝 Health Tip for Everyone!</span>
           </div>
-          <p className="text-sm">Drink plenty of water throughout the day to keep your body healthy and hydrated! 💧</p>
+          <p className="text-sm">Drinking water is like giving your body a big, refreshing hug! Try to drink 8 glasses a day! 🥤✨</p>
         </div>
 
         {/* Voice Assistant Interface */}
@@ -332,7 +406,7 @@ Key guidelines:
                   ) : (
                     <>
                       <Mic className="h-12 w-12 mb-2" />
-                      {useAiDoctor ? "Talk to AI Doctor" : "Talk to Me"}
+                      {useAiDoctor ? "Talk to AI Doctor!" : "Talk to Me!"}
                     </>
                   )}
                 </Button>
@@ -445,13 +519,14 @@ Key guidelines:
 
             {/* Instructions */}
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border-2 border-yellow-200">
-              <h3 className="font-semibold mb-2 text-center">How to Use</h3>
+              <h3 className="font-semibold mb-2 text-center">🌟 How to Use Voice Assistant 🌟</h3>
               <ul className="space-y-1 text-sm">
-                <li>• Click the microphone button to start talking</li>
-                <li>• Describe your symptoms or ask health questions</li>
-                <li>• I'll provide helpful advice and suggestions</li>
-                <li>• Always consult a doctor for serious concerns</li>
-                <li>• Use AI Doctor mode for more detailed responses</li>
+                <li>• 🎤 Click "Talk to Me!" button to start speaking</li>
+                <li>• 🗣️ Tell me about your symptoms or ask health questions</li>
+                <li>• 🤖 Enable AI Doctor mode for advanced medical conversations</li>
+                <li>• 🔊 I'll speak back to you in your chosen language</li>
+                <li>• 🎛️ Adjust speed and volume for your comfort</li>
+                <li>• 👨‍⚕️ Always consult a real doctor for serious concerns!</li>
               </ul>
             </div>
           </CardContent>
