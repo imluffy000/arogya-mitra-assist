@@ -2,18 +2,20 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Heart, Stethoscope, Play, Pause } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslation } from "@/utils/translations";
+import LanguageSelector from "@/components/LanguageSelector";
 
 interface VoiceAssistantProps {
   onBack: () => void;
 }
 
 const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
+  const { selectedLanguage, languages } = useLanguage();
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
   const [volume, setVolume] = useState(1);
@@ -25,16 +27,6 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
-  const languages = [
-    { code: 'en', name: 'English', voice: 'en-US' },
-    { code: 'hi', name: 'हिंदी (Hindi)', voice: 'hi-IN' },
-    { code: 'te', name: 'తెలుగు (Telugu)', voice: 'te-IN' },
-    { code: 'ta', name: 'தமிழ் (Tamil)', voice: 'ta-IN' },
-    { code: 'bn', name: 'বাংলা (Bengali)', voice: 'bn-IN' },
-    { code: 'es', name: 'Español (Spanish)', voice: 'es-ES' },
-    { code: 'fr', name: 'Français (French)', voice: 'fr-FR' }
-  ];
 
   useEffect(() => {
     // Initialize speech synthesis
@@ -178,18 +170,18 @@ Key guidelines:
         fever: "अरे वाह! 🤒 आपको बुखार है! मैं आपको बेहतर महसूस कराने में मदद करूंगा! 🦸‍♀️\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• पैरासिटामोल बड़ों के लिए\n• बच्चों के लिए बच्चों वाली दवा\n• इबुप्रोफेन केवल बड़ों के लिए\n\n⚠️ बहुत महत्वपूर्ण: आप बहुत बहादुर हैं! पर कोई भी दवा लेने से पहले हमेशा बड़ों और डॉक्टर से पूछें! 🤗",
         headache: "अरे! 😔 सिर में दर्द हो रहा है! 🌟\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• पैरासिटामोल हल्के सिरदर्द के लिए\n• इबुप्रोफेन केवल बड़ों के लिए\n\n⚠️ बहुत महत्वपूर्ण: दवा लेने से पहले बड़ों और डॉक्टर से पूछें! 💪",
         cough: "खांसी आ रही है! 😷 🌪️\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• खांसी की दवा\n• गले की गोलियाँ बड़े बच्चों/बड़ों के लिए\n• शहद वाली दवा (1 साल से बड़े बच्चों के लिए)\n\n⚠️ बहुत महत्वपूर्ण: कोई भी दवा लेने से पहले बड़ों और डॉक्टर से पूछें! जल्दी ठीक हो जाएंगे! 🌈",
-        default: "नमस्ते बहादुर दोस्त! 😊 💡 గుర్తుంచుకోండి: నేను మందులను సూచించగలను, కానీ ఏదైనా మందు తీసుకునే ముందు ఎల్లప్పుడూ పెద్దలని మరియు డాక్టర్‌ని అడగాలి! 👨‍⚕️👩‍⚕️"
+        default: "नमस्ते बहादुर दोस्त! 😊 💡 yaad rakhiye: मैं दवाइयों का सुझाव दे सकता हूँ, लेकिन कोई भी दवा लेने से पहले हमेशा बड़ों और डॉक्टर से पूछें! 👨‍⚕️👩‍⚕️"
       },
       te: {
         fever: "అయ్యో! 🤒 మీకు జ్వరం వచ్చిందా! 🦸‍♀️\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• పెరాసిటమాల్ పెద్దలకు\n• పిల్లలకు పిల్లల మందు\n\n⚠️ చాలా ముఖ్యం: మీరు చాలా ధైర్యవంతులు! కానీ ఏ మందు అయినా తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 🤗",
         headache: "అయ్యో! 😔 తల నొప్పిగా ఉందా! 🌟\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• పెరాసిటమాల్ తేలికపాటి తలనొప్పికి\n\n⚠️ చాలా ముఖ్యం: మందు తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 💪",
-        cough: "దగ్ గుమ్! 😷 🌪️\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• దగ్గు మందు\n• గొంతు మాత్రికలు పెద్దలకు\n\n⚠️ చాలా ముఖ్యం: ఏ మందు అయినా తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 🌈",
+        cough: "దగ్ గుమ్! 😷 🌪️\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• దగ్గు మందు\n• తொண்டை మாத்திரைకளు పెరியవర్కలు\n\n⚠️ చాలా ముఖ్యం: ఏ మందు అయినా తీసుకునే ముందు పెద్దలని మరియు డాక్టర్‌ని అడగండి! 🌈",
         default: "నమస్కారం ధైర్యవంతుడా! 😊 💡 గుర్తుంచుకోండి: నేను మందులను సూచించగలను, కానీ ఏదైనా మందు తీసుకునే ముందు ఎల్లప్పుడూ పెద్దలని మరియు డాక్టర్‌ని అడగాలి! 👨‍⚕️👩‍⚕️"
       },
       ta: {
-        fever: "அய்யோ! 🤒 உங்களுக்கு காய்ச்சல் வந்துள்ளது! 🦸‍♀️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুமதியுடன் மட்டுமே!):\n• பாராசிட்டமால் பெரியவர்களுக்கு\n• குழந்தைகளுக்கு குழந்தைகள் மருந்து\n\n⚠️ மிக முக்கியம்: நீங்கள் மிகவும் தைரியமானவர்! ஆனால் எந்த மருந்தும் எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 🤗",
+        fever: "அய்யோ! 🤒 உங்களுக்கு காய்ச்சல் வந்துள்ளது! 🦸‍♀️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুমதியுடன் மட்டுமே!):\n• பாராசிட்டமால் பெரியவர்களுக்கு\n• குழந்தைகளுக்கு குழந்தைகள் மருந்து\n\n⚠️ மிக முக்கியம்: நீங்கள் மிகவும் தைரியமானவர்! ஆனால் எந்த மருந்தும் எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 🤗",
         headache: "அய்யோ! 😔 தலைவலி இருக்கிறதா! 🌟\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুমதியுடன் மட்டுமே!):\n• பாராசிட்டமால் லேசான தலைவலிக்கு\n\n⚠️ மிக முக்கியம்: மருந்து எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 💪",
-        cough: "இருமல்! 😷 🌪️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুমதியுடன் மட்டுமே!):\n• இருமல் மருந்து\n• தொண்டை மாத்திரைகள் பெரியவர்களுக்கு\n\n⚠️ மிக முக்கியம்: எந்த மருந்தும் எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 🌈",
+        cough: "இருமல்! 😷 🌪️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனুমதியுடன் மட்டுமே!):\n• இருமல் மருந்து\n• தொண்டை மாத்திரைகள் பெரியவர்களுக்கு\n\n⚠️ மிக முக்கியம்: ஏ மருந்தும் எடுக்கும் முன் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேளுங்கள்! 🌈",
         default: "வணக்கம் தைரியமான நண்பரே! 😊 💡 நினைவில் வைக்கவும்: நான் மருந்துகளை பரிந்துரைக்க முடியும், ஆனால் எந்த மருந்தும் எடுக்கும் முன் எப்போதும் பெரியவர்கள் மற்றும் மருத்துவரிடம் கேட்க வேண்டும்! 👨‍⚕️👩‍⚕️"
       },
       bn: {
@@ -318,22 +310,9 @@ Key guidelines:
             className="flex items-center gap-2 hover:scale-105 transition-transform"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Home
+            {getTranslation(selectedLanguage, 'backToHome')}
           </Button>
-          <div className="flex items-center gap-2">
-            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-              <SelectTrigger className="w-48 hover:scale-105 transition-transform">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {languages.map(lang => (
-                  <SelectItem key={lang.code} value={lang.code}>
-                    {lang.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <LanguageSelector />
         </div>
 
         {/* AI Doctor Toggle */}
@@ -341,26 +320,26 @@ Key guidelines:
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Stethoscope className="h-5 w-5" />
-              <span className="font-bold">🤖 AI Doctor Mode</span>
+              <span className="font-bold">{getTranslation(selectedLanguage, 'aiDoctorMode')}</span>
             </div>
             <Button
               onClick={() => setUseAiDoctor(!useAiDoctor)}
               variant={useAiDoctor ? "secondary" : "outline"}
               className="bg-white text-purple-600 hover:bg-gray-100"
             >
-              {useAiDoctor ? "Enabled" : "Enable AI Doctor"}
+              {useAiDoctor ? getTranslation(selectedLanguage, 'enabled') : getTranslation(selectedLanguage, 'enableAiDoctor')}
             </Button>
           </div>
           {useAiDoctor && (
             <div className="mt-3">
               <Input
                 type="password"
-                placeholder="Enter your OpenAI API key..."
+                placeholder={getTranslation(selectedLanguage, 'apiKeyPlaceholder')}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 className="bg-white text-gray-800"
               />
-              <p className="text-xs mt-1 opacity-80">Your API key is only stored locally and never shared.</p>
+              <p className="text-xs mt-1 opacity-80">{getTranslation(selectedLanguage, 'apiKeyNote')}</p>
             </div>
           )}
         </div>
@@ -369,9 +348,9 @@ Key guidelines:
         <div className="mb-6 bg-gradient-to-r from-pink-400 to-purple-500 text-white p-4 rounded-lg shadow-lg animate-scale-in">
           <div className="flex items-center gap-2 mb-2">
             <Heart className="h-5 w-5 animate-pulse" />
-            <span className="font-bold">💝 Health Tip for Everyone!</span>
+            <span className="font-bold">{getTranslation(selectedLanguage, 'healthTip')}</span>
           </div>
-          <p className="text-sm">Drinking water is like giving your body a big, refreshing hug! Try to drink 8 glasses a day! 🥤✨</p>
+          <p className="text-sm">{getTranslation(selectedLanguage, 'healthTipText')}</p>
         </div>
 
         {/* Voice Assistant Interface */}
@@ -380,7 +359,7 @@ Key guidelines:
             <CardTitle className="flex items-center gap-2 justify-center text-2xl">
               <Stethoscope className="h-6 w-6 animate-pulse" />
               <Heart className="h-5 w-5 text-pink-300 animate-bounce" />
-              {useAiDoctor ? "AI Doctor Voice" : "Voice Assistant"} - ArogyaMitra
+              {useAiDoctor ? `${getTranslation(selectedLanguage, 'aiDoctorMode').replace('🤖 ', '')} Voice` : getTranslation(selectedLanguage, 'voiceAssistant').replace('🎤 ', '')} - {getTranslation(selectedLanguage, 'appName')}
               <Heart className="h-5 w-5 text-pink-300 animate-bounce" />
             </CardTitle>
           </CardHeader>
@@ -401,12 +380,12 @@ Key guidelines:
                   {isListening ? (
                     <>
                       <MicOff className="h-12 w-12 mb-2" />
-                      Stop
+                      {getTranslation(selectedLanguage, 'stop')}
                     </>
                   ) : (
                     <>
                       <Mic className="h-12 w-12 mb-2" />
-                      {useAiDoctor ? "Talk to AI Doctor!" : "Talk to Me!"}
+                      {useAiDoctor ? getTranslation(selectedLanguage, 'talkToAiDoctor') : getTranslation(selectedLanguage, 'talkToMe')}
                     </>
                   )}
                 </Button>
@@ -427,12 +406,12 @@ Key guidelines:
                   {isVoiceEnabled ? (
                     <>
                       <Volume2 className="h-4 w-4" />
-                      Voice On
+                      {getTranslation(selectedLanguage, 'voiceOn')}
                     </>
                   ) : (
                     <>
                       <VolumeX className="h-4 w-4" />
-                      Voice Off
+                      {getTranslation(selectedLanguage, 'voiceOff')}
                     </>
                   )}
                 </Button>
@@ -444,7 +423,7 @@ Key guidelines:
                     className="flex items-center gap-2 hover:scale-105 transition-transform animate-pulse"
                   >
                     <Pause className="h-4 w-4" />
-                    Stop Speaking
+                    {getTranslation(selectedLanguage, 'stopSpeaking')}
                   </Button>
                 )}
               </div>
@@ -453,7 +432,7 @@ Key guidelines:
             {/* Speech Rate and Volume Controls */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Speaking Speed: {speechRate}x</label>
+                <label className="text-sm font-medium">{getTranslation(selectedLanguage, 'speakingSpeed')}: {speechRate}x</label>
                 <input
                   type="range"
                   min="0.5"
@@ -466,7 +445,7 @@ Key guidelines:
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Volume: {Math.round(volume * 100)}%</label>
+                <label className="text-sm font-medium">{getTranslation(selectedLanguage, 'volume')}: {Math.round(volume * 100)}%</label>
                 <input
                   type="range"
                   min="0"
@@ -484,7 +463,7 @@ Key guidelines:
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border-2 border-blue-200 animate-fade-in">
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
                   <Mic className="h-4 w-4 text-blue-600" />
-                  You said:
+                  {getTranslation(selectedLanguage, 'youSaid')}
                 </h3>
                 <p className="text-gray-700 italic">"{transcript}"</p>
               </div>
@@ -495,7 +474,7 @@ Key guidelines:
               <div className="bg-gradient-to-r from-green-50 to-pink-50 p-4 rounded-lg border-2 border-green-200 animate-fade-in">
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
                   <Heart className="h-4 w-4 text-green-600" />
-                  {useAiDoctor ? "AI Doctor says:" : "ArogyaMitra says:"}
+                  {useAiDoctor ? getTranslation(selectedLanguage, 'aiDoctorSays') : getTranslation(selectedLanguage, 'arogyaMitraSays')}
                 </h3>
                 <p className="text-gray-700 whitespace-pre-line leading-relaxed">{response}</p>
               </div>
@@ -506,27 +485,24 @@ Key guidelines:
               {isListening && (
                 <div className="flex items-center gap-2 text-green-600 animate-pulse">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  Listening...
+                  {getTranslation(selectedLanguage, 'listening')}
                 </div>
               )}
               {isSpeaking && (
                 <div className="flex items-center gap-2 text-blue-600 animate-pulse">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  Speaking...
+                  {getTranslation(selectedLanguage, 'speaking')}
                 </div>
               )}
             </div>
 
             {/* Instructions */}
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border-2 border-yellow-200">
-              <h3 className="font-semibold mb-2 text-center">🌟 How to Use Voice Assistant 🌟</h3>
+              <h3 className="font-semibold mb-2 text-center">{getTranslation(selectedLanguage, 'howToUse')}</h3>
               <ul className="space-y-1 text-sm">
-                <li>• 🎤 Click "Talk to Me!" button to start speaking</li>
-                <li>• 🗣️ Tell me about your symptoms or ask health questions</li>
-                <li>• 🤖 Enable AI Doctor mode for advanced medical conversations</li>
-                <li>• 🔊 I'll speak back to you in your chosen language</li>
-                <li>• 🎛️ Adjust speed and volume for your comfort</li>
-                <li>• 👨‍⚕️ Always consult a real doctor for serious concerns!</li>
+                {(getTranslation(selectedLanguage, 'voiceInstructions') as string[]).map((instruction, index) => (
+                  <li key={index}>• {instruction}</li>
+                ))}
               </ul>
             </div>
           </CardContent>

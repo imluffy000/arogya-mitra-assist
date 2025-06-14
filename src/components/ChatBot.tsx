@@ -1,11 +1,12 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Send, Bot, User, Globe, Heart, Stethoscope } from "lucide-react";
+import { ArrowLeft, Send, Bot, User, Heart, Stethoscope } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslation } from "@/utils/translations";
+import LanguageSelector from "@/components/LanguageSelector";
 
 interface Message {
   id: string;
@@ -20,9 +21,9 @@ interface ChatBotProps {
 }
 
 const ChatBot = ({ onBack }: ChatBotProps) => {
+  const { selectedLanguage } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [isTyping, setIsTyping] = useState(false);
   const [useAiDoctor, setUseAiDoctor] = useState(false);
   const [apiKey, setApiKey] = useState('');
@@ -56,7 +57,7 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
         ? "नमस्ते! 👋 मैं आरोग्यमित्र का AI डॉक्टर हूँ। मैं आपको चिकित्सा मार्गदर्शन और सहायता प्रदान करने के लिए यहाँ हूँ। कृपया याद रखें कि मैं सहायक जानकारी दे सकता हूँ, लेकिन गंभीर चिकित्सा चिंताओं के लिए हमेशा लाइसेंसशुदा डॉक्टर से सलाह लें। आज मैं आपकी कैसे मदद कर सकता हूँ? 🩺"
         : "नमस्ते! 👋 मैं आरोग्यमित्र का दोस्ताना चिकित्सा सहायक हूँ। मैं आपको अपने स्वास्थ्य को बेहतर समझने में मदद करने के लिए यहाँ हूँ! आज आप क्या जानना चाहेंगे? 🩺",
       te: useAiDoctor
-        ? "నమస్కారం! 👋 నేను ఆరోగ్యమిత్ర యొక్క AI డాక్టర్. వైద్య మార్గదర్శనం మరియు మద్దతు అందించడానికి నేను ఇక్కడ ఉన్నాను. దయచేసి గుర్తుంచుకోండి, నేను సహాయకరమైన సమాచారం అందించగలను, కానీ తీవ్రమైన వైద్య సమస్యలకు ఎల్లప్పుడూ లైసెన్స్ పొందిన వైద్యుడిని సంప్రదించండి! 🩺"
+        ? "నమస్కారం! 👋 నేను ఆరోగ్యమిత్ర యొక్క AI డాక్టర్. వైద్య మార్గదర్శనం మరియు మద్దతు అందించడానికి నేను ఇక్కడ ఉన్నాను। దయచేసి గుర్తుంచుకోండి, నేను సహాయకరమైన సమాచారం అందించగలను, కానీ తీవ్రమైన వైద్య సమస్యలకు ఎల్లప్పుడూ లైసెన్స్ పొందిన వైద్యుడిని సంప్రదించండి! 🩺"
         : "నమస్కారం! 👋 నేను ఆరోగ్యమిత్ర యొక్క స్నేహపూర్వక వైద్య సహాయకుడిని. మీ ఆరోగ్యాన్ని మెరుగ్గా అర్థం చేసుకోవడంలో సహాయపడటానికి నేను ఇక్కడ ఉన్నాను! 🩺",
       ta: useAiDoctor
         ? "வணக்கம்! 👋 நான் ஆரோக்யமித்ராவின் AI மருத்துவர். வைத்திய வழிகாட்டுதல் மற்றும் ஆதரவு வழங்க நான் இங்கே இருக்கிறேன். தயவுசெய்து நினைவில் கொள்ளுங்கள், நான் உதவிகரமான தகவல்களை வழங்க முடியும், ஆனால் தீவிர மருத்துவ கவலைகளுக்கு எப்போதும் உரிமம் பெற்ற மருத்துவரை அணுகவும்! 🩺"
@@ -258,23 +259,9 @@ Key guidelines:
             className="flex items-center gap-2 hover:scale-105 transition-transform"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Home
+            {getTranslation(selectedLanguage, 'backToHome')}
           </Button>
-          <div className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-blue-600 animate-pulse" />
-            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-              <SelectTrigger className="w-48 hover:scale-105 transition-transform">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {languages.map(lang => (
-                  <SelectItem key={lang.code} value={lang.code}>
-                    {lang.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <LanguageSelector />
         </div>
 
         {/* AI Doctor Toggle */}
@@ -282,26 +269,26 @@ Key guidelines:
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Stethoscope className="h-5 w-5" />
-              <span className="font-bold">🤖 AI Doctor Mode</span>
+              <span className="font-bold">{getTranslation(selectedLanguage, 'aiDoctorMode')}</span>
             </div>
             <Button
               onClick={() => setUseAiDoctor(!useAiDoctor)}
               variant={useAiDoctor ? "secondary" : "outline"}
               className="bg-white text-purple-600 hover:bg-gray-100"
             >
-              {useAiDoctor ? "Enabled" : "Enable AI Doctor"}
+              {useAiDoctor ? getTranslation(selectedLanguage, 'enabled') : getTranslation(selectedLanguage, 'enableAiDoctor')}
             </Button>
           </div>
           {useAiDoctor && (
             <div className="mt-3">
               <Input
                 type="password"
-                placeholder="Enter your OpenAI API key..."
+                placeholder={getTranslation(selectedLanguage, 'apiKeyPlaceholder')}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 className="bg-white text-gray-800"
               />
-              <p className="text-xs mt-1 opacity-80">Your API key is only stored locally and never shared.</p>
+              <p className="text-xs mt-1 opacity-80">{getTranslation(selectedLanguage, 'apiKeyNote')}</p>
             </div>
           )}
         </div>
@@ -310,9 +297,9 @@ Key guidelines:
         <div className="mb-6 bg-gradient-to-r from-green-400 to-blue-500 text-white p-4 rounded-lg shadow-lg animate-scale-in">
           <div className="flex items-center gap-2 mb-2">
             <Stethoscope className="h-5 w-5 animate-pulse" />
-            <span className="font-bold">💡 Did You Know?</span>
+            <span className="font-bold">{getTranslation(selectedLanguage, 'didYouKnow')}</span>
           </div>
-          <p className="text-sm">Your heart beats about 100,000 times per day! That's like a super strong drum that never gets tired! 🥁❤️</p>
+          <p className="text-sm">{getTranslation(selectedLanguage, 'heartFact')}</p>
         </div>
 
         {/* Chat Interface */}
@@ -321,7 +308,7 @@ Key guidelines:
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-6 w-6 animate-bounce" />
               <Heart className="h-5 w-5 text-pink-300 animate-pulse" />
-              {useAiDoctor ? "AI Doctor" : "Medical ChatBot"} - ArogyaMitra
+              {useAiDoctor ? getTranslation(selectedLanguage, 'aiDoctorMode').replace('🤖 ', '') : getTranslation(selectedLanguage, 'medicalChatBot').replace('🤖 ', '')} - {getTranslation(selectedLanguage, 'appName')}
               <Heart className="h-5 w-5 text-pink-300 animate-pulse" />
             </CardTitle>
           </CardHeader>
