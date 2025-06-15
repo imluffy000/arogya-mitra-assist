@@ -160,6 +160,21 @@ Key guidelines:
 
     const utterance = new SpeechSynthesisUtterance(textWithoutEmojis);
     
+    const voices = synthRef.current.getVoices();
+    const selectedVoice = voices.find(voice => voice.lang === language);
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      console.log(`Using voice: ${selectedVoice.name} for language: ${language}`);
+    } else {
+      console.warn(`No voice found for language: ${language}. Using browser default.`);
+      toast({
+        title: "Voice Not Available",
+        description: `Your browser doesn't have a voice for ${languageMap[language] || 'the selected language'}. It might use a default voice.`,
+        variant: "destructive",
+      });
+    }
+
     utterance.lang = language;
     utterance.volume = volume;
     utterance.rate = speechRate;
