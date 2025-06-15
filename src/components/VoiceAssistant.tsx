@@ -1,10 +1,14 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Heart, Stethoscope, Play, Pause } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Heart, Stethoscope, Pause } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import Groq from "groq-sdk";
+
+// WARNING: Storing API keys directly in the frontend is not secure.
+// For a production app, this should be handled via a backend server or secure environment variables.
+const groqApiKey = "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";
+const groq = new Groq({ apiKey: groqApiKey, dangerouslyAllowBrowser: true });
 
 interface VoiceAssistantProps {
   onBack: () => void;
@@ -18,9 +22,7 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
   const [volume, setVolume] = useState(1);
   const [speechRate, setSpeechRate] = useState(1);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
-  const [useAiDoctor, setUseAiDoctor] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  
+
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -80,64 +82,39 @@ const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
   }, [isListening]);
 
   const callAiDoctor = async (userMessage: string): Promise<string> => {
-    if (!apiKey) {
-      return "Please enter your OpenAI API key to use the AI Doctor feature. 🔑";
-    }
-
     try {
-      const systemPrompt = `You are ArogyaMitra's AI Doctor, a compassionate and knowledgeable medical assistant. You provide medical guidance in a friendly, empathetic manner while always emphasizing the importance of consulting licensed healthcare professionals for serious concerns.
+      const systemPrompt = `You are ArogyaMitra's AI Doctor, a compassionate and knowledgeable medical assistant powered by Llama 3. You provide medical guidance in a friendly, empathetic manner while always emphasizing the importance of consulting licensed healthcare professionals for serious concerns.
 
 Key guidelines:
-- Always be empathetic and supportive
-- Provide helpful medical information and general advice
-- Include medicine recommendations when appropriate, but ALWAYS emphasize consulting a doctor first
-- Use emojis and friendly language to make conversations comfortable
-- Ask follow-up questions to better understand symptoms
-- Provide emergency guidance when necessary
-- Remember you're talking to people of all ages, so keep language accessible
-- Always end serious medical advice with "⚠️ Please consult a licensed healthcare professional for proper diagnosis and treatment."
-- Keep responses concise for voice interaction (under 150 words)
-- Respond in English`;
+- Always be empathetic and supportive.
+- Provide helpful medical information and general advice.
+- Include medicine recommendations when appropriate, but ALWAYS emphasize consulting a doctor first.
+- Use emojis and friendly language to make conversations comfortable and accessible for all ages (including children and seniors).
+- Ask follow-up questions to better understand symptoms.
+- Provide emergency guidance when necessary.
+- Keep responses concise and clear for voice interaction (under 150 words).
+- Always end serious medical advice with "⚠️ Please consult a licensed healthcare professional for proper diagnosis and treatment."`;
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage }
-          ],
-          max_tokens: 300,
-          temperature: 0.7,
-        }),
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage }
+        ],
+        model: "llama3-70b-8192",
+        temperature: 0.7,
+        max_tokens: 300,
       });
 
-      if (!response.ok) {
-        throw new Error('API request failed');
-      }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
+      return chatCompletion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
     } catch (error) {
-      console.error('AI Doctor API error:', error);
-      return "I'm having trouble connecting right now. Please try again or use the basic medical assistant mode. 😔";
+      console.error('Groq API error:', error);
+      return "I'm having trouble connecting to the AI right now. Please try again in a moment. 😔";
     }
   };
 
   const handleVoiceInput = async (transcript: string) => {
-    let responseText: string;
-    
     try {
-      if (useAiDoctor && apiKey) {
-        responseText = await callAiDoctor(transcript);
-      } else {
-        responseText = getMedicalResponse(transcript);
-      }
-      
+      const responseText = await callAiDoctor(transcript);
       setResponse(responseText);
       if (isVoiceEnabled) {
         speakResponse(responseText);
@@ -150,21 +127,6 @@ Key guidelines:
         speakResponse(errorResponse);
       }
     }
-  };
-
-  const getMedicalResponse = (userInput: string): string => {
-    const lowerInput = userInput.toLowerCase();
-    
-    // Enhanced responses for children and elderly with medicine recommendations
-    if (lowerInput.includes('fever')) {
-      return "Oh my! 🤒 You have a fever! Let me help you feel better! Your body is like a brave soldier fighting germs! 🦸‍♀️\n\nHere's what heroes do:\n• Rest like a sleeping superhero 😴\n• Drink water like it's your super power! 💧\n• Put a cool cloth on your forehead ❄️\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Paracetamol/Acetaminophen for adults\n• Children's Tylenol for kids (ask parents first!)\n• Ibuprofen for adults only\n\n⚠️ SUPER IMPORTANT: You're so brave! But always tell a grown-up and ask a doctor before taking ANY medicine! Call doctor if fever is over 102°F! 🤗";
-    } else if (lowerInput.includes('headache')) {
-      return "Ouch! 😔 Your head hurts! Let's make it feel better together! 🌟\n\nTry these magical remedies:\n• Rest in a quiet, cozy place 🏠\n• Drink water slowly - your brain loves water! 🧠💧\n• Breathe deeply like you're smelling beautiful flowers 🌸\n• Ask someone to gently massage your temples 👐\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Paracetamol/Acetaminophen for mild headaches\n• Ibuprofen for adults (not for children under 12)\n• NEVER give aspirin to children!\n\n⚠️ SUPER IMPORTANT: Ask a grown-up and doctor before taking ANY medicine! Get help if headache is very bad! Remember, you're stronger than any headache! 💪";
-    } else if (lowerInput.includes('cough')) {
-      return "Cough, cough! 😷 Don't worry, coughing is your body's way of cleaning itself! 🌪️\n\nLet's help your throat feel better:\n• Drink warm honey water (nature's candy!) 🍯\n• Breathe steam from a warm shower 🚿\n• Rest your voice like it's sleeping 😴\n• Gargle with warm salt water if you're old enough 🧂\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Cough syrup for persistent cough\n• Throat lozenges for older kids/adults\n• Honey-based remedies (for kids over 1 year)\n\n⚠️ SUPER IMPORTANT: Always ask a grown-up and doctor before taking ANY medicine! Most coughs get better on their own. You'll feel better soon, I promise! 🌈";
-    }
-    
-    return "Hello there, brave friend! 😊 I'm here to help you feel better! 🤗\n\nTo give you the best help, can you tell me:\n• What part of your body doesn't feel good? 🤷‍♀️\n• When did you start feeling this way? ⏰\n• What makes it feel better or worse? 🤔\n\n💡 Remember: I can suggest medicines, but you must ALWAYS tell a grown-up you trust and ask a doctor before taking ANY medicine! Never take medicine alone! 👨‍⚕️👩‍⚕️\n\nRemember, you're very brave for asking about your health! 🦸‍♂️";
   };
 
   const speakResponse = (text: string) => {
@@ -215,7 +177,7 @@ Key guidelines:
       recognitionRef.current.start();
       toast({
         title: "Listening! 👂",
-        description: useAiDoctor ? "Speak to the AI Doctor! I'm listening! 🩺" : "Speak now! I'm listening to help you! 😊",
+        description: "Speak to the AI Doctor! I'm listening! 🩺",
       });
     } catch (error) {
       console.error('Error starting recognition:', error);
@@ -262,35 +224,6 @@ Key guidelines:
           </Button>
         </div>
 
-        {/* AI Doctor Toggle */}
-        <div className="mb-6 bg-gradient-to-r from-purple-400 to-blue-500 text-white p-4 rounded-lg shadow-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Stethoscope className="h-5 w-5" />
-              <span className="font-bold">🤖 AI Doctor Mode</span>
-            </div>
-            <Button
-              onClick={() => setUseAiDoctor(!useAiDoctor)}
-              variant={useAiDoctor ? "secondary" : "outline"}
-              className="bg-white text-purple-600 hover:bg-gray-100"
-            >
-              {useAiDoctor ? "Enabled" : "Enable AI Doctor"}
-            </Button>
-          </div>
-          {useAiDoctor && (
-            <div className="mt-3">
-              <Input
-                type="password"
-                placeholder="Enter your OpenAI API key"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="bg-white text-gray-800"
-              />
-              <p className="text-xs mt-1 opacity-80">Your API key is stored locally and never shared</p>
-            </div>
-          )}
-        </div>
-
         {/* Health Tip Banner */}
         <div className="mb-6 bg-gradient-to-r from-pink-400 to-purple-500 text-white p-4 rounded-lg shadow-lg animate-scale-in">
           <div className="flex items-center gap-2 mb-2">
@@ -306,7 +239,7 @@ Key guidelines:
             <CardTitle className="flex items-center gap-2 justify-center text-2xl">
               <Stethoscope className="h-6 w-6 animate-pulse" />
               <Heart className="h-5 w-5 text-pink-300 animate-bounce" />
-              {useAiDoctor ? "AI Doctor Voice" : "Voice Assistant"} - ArogyaMitra
+              AI Doctor Voice - ArogyaMitra
               <Heart className="h-5 w-5 text-pink-300 animate-bounce" />
             </CardTitle>
           </CardHeader>
@@ -318,7 +251,7 @@ Key guidelines:
                 <Button
                   onClick={isListening ? stopListening : startListening}
                   disabled={isSpeaking}
-                  className={`w-32 h-32 rounded-full text-white font-bold text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 ${
+                  className={`w-32 h-32 rounded-full text-white font-bold text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 flex flex-col items-center justify-center ${
                     isListening 
                       ? 'bg-gradient-to-r from-red-500 to-pink-500 animate-pulse hover:from-red-600 hover:to-pink-600' 
                       : 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 hover:scale-110'
@@ -332,7 +265,7 @@ Key guidelines:
                   ) : (
                     <>
                       <Mic className="h-12 w-12 mb-2" />
-                      {useAiDoctor ? "Talk to AI Doctor" : "Talk to Me"}
+                      Talk to AI Doctor
                     </>
                   )}
                 </Button>
@@ -421,7 +354,7 @@ Key guidelines:
               <div className="bg-gradient-to-r from-green-50 to-pink-50 p-4 rounded-lg border-2 border-green-200 animate-fade-in">
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
                   <Heart className="h-4 w-4 text-green-600" />
-                  {useAiDoctor ? "AI Doctor says:" : "ArogyaMitra says:"}
+                  AI Doctor says:
                 </h3>
                 <p className="text-gray-700 whitespace-pre-line leading-relaxed">{response}</p>
               </div>
@@ -449,9 +382,8 @@ Key guidelines:
               <ul className="space-y-1 text-sm">
                 <li>• Click the microphone button to start talking</li>
                 <li>• Describe your symptoms or ask health questions</li>
-                <li>• I'll provide helpful advice and suggestions</li>
+                <li>• The AI Doctor will provide helpful advice and suggestions</li>
                 <li>• Always consult a doctor for serious concerns</li>
-                <li>• Use AI Doctor mode for more detailed responses</li>
               </ul>
             </div>
           </CardContent>
