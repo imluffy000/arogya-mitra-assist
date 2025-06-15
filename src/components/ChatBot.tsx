@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,8 +94,8 @@ const ChatBot = ({ onBack, type }: ChatBotProps) => {
   };
 
   const titles = {
-    symptom_checker: t('symptomChecker'),
-    mental_support: t('mentalSupport'),
+    symptom_checker: t('SymptomChecker'),
+    mental_support: t('MentalSupport'),
   };
 
   const placeholders = {

@@ -88,9 +88,9 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
             <div className="mx-auto mb-4 p-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full w-fit hover:animate-bounce">
               <Stethoscope className="h-10 w-10 text-blue-600" />
             </div>
-            <CardTitle className="text-2xl text-blue-700 mb-2">{t('symptomChecker')}</CardTitle>
+            <CardTitle className="text-2xl text-blue-700 mb-2">{t('SymptomChecker')}</CardTitle>
             <CardDescription className="text-gray-600 leading-relaxed">
-              {t('symptomCheckerDescription')}
+              {t('SymptomCheckerDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -109,9 +109,9 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
             <div className="mx-auto mb-4 p-4 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full w-fit hover:animate-bounce">
               <BrainCircuit className="h-10 w-10 text-pink-600" />
             </div>
-            <CardTitle className="text-2xl text-pink-700 mb-2">{t('mentalSupport')}</CardTitle>
+            <CardTitle className="text-2xl text-pink-700 mb-2">{t('MentalSupport')}</CardTitle>
             <CardDescription className="text-gray-600 leading-relaxed">
-              {t('mentalSupportDescription')}
+              {t('MentalSupportDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
