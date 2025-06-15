@@ -6,12 +6,16 @@ import { MessageCircle, Phone, Mic, MapPin, Heart, Shield, Baby, Users, Stethosc
 import ChatBot from "@/components/ChatBot";
 import EmergencyPortal from "@/components/EmergencyPortal";
 import VoiceAssistant from "@/components/VoiceAssistant";
+import LanguageSelector from '@/components/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 const Index = () => {
-  const [activeFeature, setActiveFeature] = useState<'home' | 'chatbot' | 'emergency' | 'voice'>('home');
+  const [activeFeature, setActiveFeature] = useState<'language' | 'home' | 'chatbot' | 'emergency' | 'voice'>('language');
 
   const renderActiveFeature = () => {
     switch (activeFeature) {
+      case 'language':
+        return <LanguageSelector onLanguageSelect={() => setActiveFeature('home')} />;
       case 'chatbot':
         return <ChatBot onBack={() => setActiveFeature('home')} />;
       case 'emergency':
@@ -31,6 +35,8 @@ const Index = () => {
 };
 
 const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | 'chatbot' | 'emergency' | 'voice') => void }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -38,12 +44,12 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
         <div className="flex items-center justify-center mb-4">
           <Heart className="h-12 w-12 text-red-500 mr-3 animate-pulse" />
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-green-600 bg-clip-text text-transparent animate-scale-in">
-            ArogyaMitra
+            {t('appName')}
           </h1>
           <Heart className="h-12 w-12 text-red-500 ml-3 animate-pulse" />
         </div>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-          Your health companion for quick medical assistance and information.
+          {t('appDescription')}
         </p>
         <div className="mt-4 flex items-center justify-center gap-2 text-lg">
           <Baby className="h-6 w-6 text-pink-500 animate-bounce" />
@@ -84,9 +90,9 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
             <div className="mx-auto mb-4 p-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full w-fit hover:animate-bounce">
               <MessageCircle className="h-10 w-10 text-blue-600" />
             </div>
-            <CardTitle className="text-2xl text-blue-700 mb-2">Medical ChatBot</CardTitle>
+            <CardTitle className="text-2xl text-blue-700 mb-2">{t('medicalChatBot')}</CardTitle>
             <CardDescription className="text-gray-600 leading-relaxed">
-              Get instant answers to your medical queries.
+              {t('medicalChatBotDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -94,7 +100,7 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
               onClick={() => setActiveFeature('chatbot')}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 text-lg font-semibold hover:scale-105 transition-transform shadow-lg"
             >
-              Start Chat
+              {t('startChat')}
             </Button>
           </CardContent>
         </Card>
@@ -105,9 +111,9 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
             <div className="mx-auto mb-4 p-4 bg-gradient-to-r from-red-100 to-pink-100 rounded-full w-fit hover:animate-bounce">
               <Phone className="h-10 w-10 text-red-600" />
             </div>
-            <CardTitle className="text-2xl text-red-700 mb-2">Emergency Portal</CardTitle>
+            <CardTitle className="text-2xl text-red-700 mb-2">{t('emergencyPortal')}</CardTitle>
             <CardDescription className="text-gray-600 leading-relaxed">
-              Quick access to emergency services and contacts.
+              {t('emergencyPortalDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -116,7 +122,7 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
               className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white py-4 text-lg font-semibold pulse hover:scale-105 transition-transform shadow-lg"
             >
               <Shield className="mr-2 h-6 w-6" />
-              Get Emergency Help
+              {t('getEmergencyHelp')}
             </Button>
           </CardContent>
         </Card>
@@ -127,9 +133,9 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
             <div className="mx-auto mb-4 p-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-full w-fit hover:animate-bounce">
               <Mic className="h-10 w-10 text-green-600" />
             </div>
-            <CardTitle className="text-2xl text-green-700 mb-2">Voice Assistant 🎤</CardTitle>
+            <CardTitle className="text-2xl text-green-700 mb-2">{t('voiceAssistant')}</CardTitle>
             <CardDescription className="text-gray-600 leading-relaxed">
-              Interact with our services using your voice.
+              {t('voiceAssistantDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -138,7 +144,7 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
               className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-4 text-lg font-semibold hover:scale-105 transition-transform shadow-lg"
             >
               <Mic className="mr-2 h-6 w-6" />
-              Start Voice Chat
+              {t('startVoiceChat')}
             </Button>
           </CardContent>
         </Card>

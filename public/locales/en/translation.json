@@ -1,0 +1,16 @@
+
+{
+  "selectLanguage": "Select Your Language",
+  "appName": "ArogyaMitra",
+  "appDescription": "Your health companion for quick medical assistance and information.",
+  "startChat": "Start Chat",
+  "medicalChatBot": "Medical ChatBot",
+  "medicalChatBotDescription": "Get instant answers to your medical queries.",
+  "emergencyPortal": "Emergency Portal",
+  "emergencyPortalDescription": "Quick access to emergency services and contacts.",
+  "getEmergencyHelp": "Get Emergency Help",
+  "voiceAssistant": "Voice Assistant 🎤",
+  "voiceAssistantDescription": "Interact with our services using your voice.",
+  "startVoiceChat": "Start Voice Chat",
+  "backToHome": "Back to Home"
+}
