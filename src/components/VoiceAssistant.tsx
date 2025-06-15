@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Heart, Stethoscope, Pause } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Groq from "groq-sdk";
+import { useTranslation } from '@/lib/translations';
 
 // WARNING: Storing API keys directly in the frontend is not secure.
 // For a production app, this should be handled via a backend server or secure environment variables.
@@ -27,6 +28,8 @@ const VoiceAssistant = ({ onBack, language }: VoiceAssistantProps) => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  const { t } = useTranslation(language as any);
 
   useEffect(() => {
     // Initialize speech synthesis
@@ -226,7 +229,7 @@ Key guidelines:
             className="flex items-center gap-2 hover:scale-105 transition-transform"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Home
+            {t('backToHome')}
           </Button>
         </div>
 
@@ -234,9 +237,9 @@ Key guidelines:
         <div className="mb-6 bg-gradient-to-r from-pink-400 to-purple-500 text-white p-4 rounded-lg shadow-lg animate-scale-in">
           <div className="flex items-center gap-2 mb-2">
             <Heart className="h-5 w-5 animate-pulse" />
-            <span className="font-bold">💡 Health Tip</span>
+            <span className="font-bold">{t('healthTip')}</span>
           </div>
-          <p className="text-sm">Drink plenty of water throughout the day to keep your body healthy and hydrated! 💧</p>
+          <p className="text-sm">{t('healthTipText')}</p>
         </div>
 
         {/* Voice Assistant Interface */}
@@ -245,7 +248,7 @@ Key guidelines:
             <CardTitle className="flex items-center gap-2 justify-center text-2xl">
               <Stethoscope className="h-6 w-6 animate-pulse" />
               <Heart className="h-5 w-5 text-pink-300 animate-bounce" />
-              AI Doctor Voice - ArogyaMitra
+              {t('aiDoctorVoiceTitle')}
               <Heart className="h-5 w-5 text-pink-300 animate-bounce" />
             </CardTitle>
           </CardHeader>
@@ -266,12 +269,12 @@ Key guidelines:
                   {isListening ? (
                     <>
                       <MicOff className="h-12 w-12 mb-2" />
-                      Stop
+                      {t('stopListening')}
                     </>
                   ) : (
                     <>
                       <Mic className="h-12 w-12 mb-2" />
-                      Talk to AI Doctor
+                      {t('startListening')}
                     </>
                   )}
                 </Button>
@@ -292,12 +295,12 @@ Key guidelines:
                   {isVoiceEnabled ? (
                     <>
                       <Volume2 className="h-4 w-4" />
-                      Voice On
+                      {t('voiceOn')}
                     </>
                   ) : (
                     <>
                       <VolumeX className="h-4 w-4" />
-                      Voice Off
+                      {t('voiceOff')}
                     </>
                   )}
                 </Button>
@@ -309,7 +312,7 @@ Key guidelines:
                     className="flex items-center gap-2 hover:scale-105 transition-transform animate-pulse"
                   >
                     <Pause className="h-4 w-4" />
-                    Stop Speaking
+                    {t('stopSpeaking')}
                   </Button>
                 )}
               </div>
@@ -318,7 +321,7 @@ Key guidelines:
             {/* Speech Rate and Volume Controls */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Speaking Speed: {speechRate}x</label>
+                <label className="text-sm font-medium">{t('speakingSpeed', { speed: speechRate })}</label>
                 <input
                   type="range"
                   min="0.5"
@@ -331,7 +334,7 @@ Key guidelines:
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Volume: {Math.round(volume * 100)}%</label>
+                <label className="text-sm font-medium">{t('volume', { volume: Math.round(volume * 100) })}</label>
                 <input
                   type="range"
                   min="0"
@@ -349,7 +352,7 @@ Key guidelines:
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border-2 border-blue-200 animate-fade-in">
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
                   <Mic className="h-4 w-4 text-blue-600" />
-                  You said:
+                  {t('youSaid')}
                 </h3>
                 <p className="text-gray-700 italic">"{transcript}"</p>
               </div>
@@ -360,7 +363,7 @@ Key guidelines:
               <div className="bg-gradient-to-r from-green-50 to-pink-50 p-4 rounded-lg border-2 border-green-200 animate-fade-in">
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
                   <Heart className="h-4 w-4 text-green-600" />
-                  AI Doctor says:
+                  {t('aiDoctorSays')}
                 </h3>
                 <p className="text-gray-700 whitespace-pre-line leading-relaxed">{response}</p>
               </div>
@@ -371,25 +374,25 @@ Key guidelines:
               {isListening && (
                 <div className="flex items-center gap-2 text-green-600 animate-pulse">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  Listening...
+                  {t('listeningStatus')}
                 </div>
               )}
               {isSpeaking && (
                 <div className="flex items-center gap-2 text-blue-600 animate-pulse">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  Speaking...
+                  {t('speakingStatus')}
                 </div>
               )}
             </div>
 
             {/* Instructions */}
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border-2 border-yellow-200">
-              <h3 className="font-semibold mb-2 text-center">How to Use</h3>
+              <h3 className="font-semibold mb-2 text-center">{t('howToUse')}</h3>
               <ul className="space-y-1 text-sm">
-                <li>• Click the microphone button to start talking</li>
-                <li>• Describe your symptoms or ask health questions</li>
-                <li>• The AI Doctor will provide helpful advice and suggestions</li>
-                <li>• Always consult a doctor for serious concerns</li>
+                <li>{t('howToUse1')}</li>
+                <li>{t('howToUse2')}</li>
+                <li>{t('howToUse3')}</li>
+                <li>{t('howToUse4')}</li>
               </ul>
             </div>
           </CardContent>
