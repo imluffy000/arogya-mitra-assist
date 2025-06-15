@@ -122,7 +122,7 @@ Key guidelines:
         ],
         model: "llama3-70b-8192",
         temperature: 0.7,
-        max_tokens: 300,
+        max_tokens: 500,
       });
 
       return chatCompletion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
