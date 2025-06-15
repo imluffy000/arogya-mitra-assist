@@ -2,24 +2,23 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Phone, Mic, MapPin, Heart, Shield, Baby, Users, Stethoscope, Activity } from "lucide-react";
+import { MessageCircle, Mic, MapPin, Heart, Baby, Users, Stethoscope, Activity, BrainCircuit } from "lucide-react";
 import ChatBot from "@/components/ChatBot";
-import EmergencyPortal from "@/components/EmergencyPortal";
 import VoiceAssistant from "@/components/VoiceAssistant";
 import LanguageSelector from '@/components/LanguageSelector';
 import { useTranslation } from 'react-i18next';
 
 const Index = () => {
-  const [activeFeature, setActiveFeature] = useState<'language' | 'home' | 'chatbot' | 'emergency' | 'voice'>('language');
+  const [activeFeature, setActiveFeature] = useState<'language' | 'home' | 'symptom_checker' | 'mental_support' | 'voice'>('language');
 
   const renderActiveFeature = () => {
     switch (activeFeature) {
       case 'language':
         return <LanguageSelector onLanguageSelect={() => setActiveFeature('home')} />;
-      case 'chatbot':
-        return <ChatBot onBack={() => setActiveFeature('home')} />;
-      case 'emergency':
-        return <EmergencyPortal onBack={() => setActiveFeature('home')} />;
+      case 'symptom_checker':
+        return <ChatBot type="symptom_checker" onBack={() => setActiveFeature('home')} />;
+      case 'mental_support':
+        return <ChatBot type="mental_support" onBack={() => setActiveFeature('home')} />;
       case 'voice':
         return <VoiceAssistant onBack={() => setActiveFeature('home')} />;
       default:
@@ -34,7 +33,7 @@ const Index = () => {
   );
 };
 
-const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | 'chatbot' | 'emergency' | 'voice') => void }) => {
+const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | 'symptom_checker' | 'mental_support' | 'voice') => void }) => {
   const { t } = useTranslation();
 
   return (
@@ -84,20 +83,20 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
 
       {/* Feature Cards */}
       <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
-        {/* Chatbot Card */}
+        {/* Symptom Checker Card */}
         <Card className="hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-3 hover:scale-105 border-2 hover:border-blue-300 animate-fade-in">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 p-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full w-fit hover:animate-bounce">
-              <MessageCircle className="h-10 w-10 text-blue-600" />
+              <Stethoscope className="h-10 w-10 text-blue-600" />
             </div>
-            <CardTitle className="text-2xl text-blue-700 mb-2">{t('medicalChatBot')}</CardTitle>
+            <CardTitle className="text-2xl text-blue-700 mb-2">{t('symptomChecker')}</CardTitle>
             <CardDescription className="text-gray-600 leading-relaxed">
-              {t('medicalChatBotDescription')}
+              {t('symptomCheckerDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button 
-              onClick={() => setActiveFeature('chatbot')}
+              onClick={() => setActiveFeature('symptom_checker')}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 text-lg font-semibold hover:scale-105 transition-transform shadow-lg"
             >
               {t('startChat')}
@@ -105,24 +104,23 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
           </CardContent>
         </Card>
 
-        {/* Emergency Portal Card */}
-        <Card className="hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-3 hover:scale-105 border-2 hover:border-red-300 animate-fade-in">
+        {/* Mental Support Card */}
+        <Card className="hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-3 hover:scale-105 border-2 hover:border-pink-300 animate-fade-in">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-4 bg-gradient-to-r from-red-100 to-pink-100 rounded-full w-fit hover:animate-bounce">
-              <Phone className="h-10 w-10 text-red-600" />
+            <div className="mx-auto mb-4 p-4 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full w-fit hover:animate-bounce">
+              <BrainCircuit className="h-10 w-10 text-pink-600" />
             </div>
-            <CardTitle className="text-2xl text-red-700 mb-2">{t('emergencyPortal')}</CardTitle>
+            <CardTitle className="text-2xl text-pink-700 mb-2">{t('mentalSupport')}</CardTitle>
             <CardDescription className="text-gray-600 leading-relaxed">
-              {t('emergencyPortalDescription')}
+              {t('mentalSupportDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button 
-              onClick={() => setActiveFeature('emergency')}
-              className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white py-4 text-lg font-semibold pulse hover:scale-105 transition-transform shadow-lg"
+              onClick={() => setActiveFeature('mental_support')}
+              className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white py-4 text-lg font-semibold hover:scale-105 transition-transform shadow-lg"
             >
-              <Shield className="mr-2 h-6 w-6" />
-              {t('getEmergencyHelp')}
+              {t('startChat')}
             </Button>
           </CardContent>
         </Card>

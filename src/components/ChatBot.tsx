@@ -16,9 +16,10 @@ interface Message {
 
 interface ChatBotProps {
   onBack: () => void;
+  type: 'symptom_checker' | 'mental_support';
 }
 
-const ChatBot = ({ onBack }: ChatBotProps) => {
+const ChatBot = ({ onBack, type }: ChatBotProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -34,15 +35,18 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
   }, [messages]);
 
   useEffect(() => {
-    const welcomeMessage = "Hello! 👋 I'm ArogyaMitra, your AI friend. I'm here to listen and offer support. How are you feeling today? 💖";
+    const welcomeMessages = {
+      mental_support: "Hello! 👋 I'm ArogyaMitra, your AI friend. I'm here to listen and offer support. How are you feeling today? 💖",
+      symptom_checker: "Hello! I'm ArogyaMitra. Please describe your symptoms, and I'll do my best to provide helpful information. Remember to consult a doctor for a diagnosis. 🩺"
+    };
 
     setMessages([{
       id: '1',
-      text: welcomeMessage,
+      text: welcomeMessages[type],
       sender: 'bot',
       timestamp: new Date()
     }]);
-  }, []);
+  }, [type]);
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
@@ -60,7 +64,7 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
     setIsTyping(true);
 
     try {
-      const responseText = await getAiResponse(currentInput, i18n.language);
+      const responseText = await getAiResponse(currentInput, i18n.language, type);
 
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -90,6 +94,16 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
     }
   };
 
+  const titles = {
+    symptom_checker: t('symptomChecker'),
+    mental_support: t('mentalSupport'),
+  };
+
+  const placeholders = {
+    symptom_checker: "e.g., 'I have a headache and a fever...' 🤒",
+    mental_support: "Tell me how you're feeling... 😊",
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 animate-fade-in">
       <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -109,7 +123,7 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-6 w-6 animate-bounce" />
               <Heart className="h-5 w-5 text-pink-300 animate-pulse" />
-              {t('medicalChatBot')} - {t('appName')}
+              {titles[type]} - {t('appName')}
               <Heart className="h-5 w-5 text-pink-300 animate-pulse" />
             </CardTitle>
           </CardHeader>
@@ -167,7 +181,7 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Tell me how you're feeling... 😊"
+                  placeholder={placeholders[type]}
                   className="flex-1 text-lg border-2 border-blue-300 focus:border-purple-400 hover:border-blue-400 transition-colors"
                   disabled={isTyping}
                 />
