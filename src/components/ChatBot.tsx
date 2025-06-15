@@ -3,26 +3,14 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Send, Bot, User, Globe, Heart, Stethoscope } from "lucide-react";
+import { ArrowLeft, Send, Bot, User, Heart, Stethoscope } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import Groq from "groq-sdk";
-
-// WARNING: Storing API keys directly in client-side code is insecure and exposes them to anyone who can view your app's source code.
-// For production apps, it is highly recommended to use a backend proxy or serverless function to handle API calls securely.
-const groqApiKey = "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";
-
-const groq = new Groq({
-  apiKey: groqApiKey,
-  dangerouslyAllowBrowser: true, // This is required for client-side API calls.
-});
 
 interface Message {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
-  language: string;
 }
 
 interface ChatBotProps {
@@ -32,19 +20,10 @@ interface ChatBotProps {
 const ChatBot = ({ onBack }: ChatBotProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [isTyping, setIsTyping] = useState(false);
+  const [useAiDoctor, setUseAiDoctor] = useState(false);
+  const [apiKey, setApiKey] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'hi', name: 'हिंदी (Hindi)' },
-    { code: 'te', name: 'తెలుగు (Telugu)' },
-    { code: 'ta', name: 'தமிழ் (Tamil)' },
-    { code: 'bn', name: 'বাংলা (Bengali)' },
-    { code: 'es', name: 'Español (Spanish)' },
-    { code: 'fr', name: 'Français (French)' }
-  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -56,24 +35,78 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
 
   useEffect(() => {
     // Welcome message
-    const welcomeMessages = {
-      en: "Hello there! 👋 I'm ArogyaMitra's friendly medical assistant. I'm here to help you understand your health better! Whether you're feeling unwell or just curious about staying healthy, I'm here for you. What would you like to know today? 🩺",
-      hi: "नमस्ते! 👋 मैं आरोग्यमित्र का दोस्ताना चिकित्सा सहायक हूँ। मैं आपको अपने स्वास्थ्य को बेहतर समझने में मदद करने के लिए यहाँ हूँ! आज आप क्या जानना चाहेंगे? 🩺",
-      te: "నమస్కారం! 👋 నేను ఆరోగ్యమిత్ర యొక్క స్నేహపూర్వక వైద్య సహాయకుడిని. మీ ఆరోగ్యాన్ని మెరుగ్గా అర్థం చేసుకోవడంలో సహాయపడటానికి నేను ఇక్కడ ఉన్నాను! 🩺",
-      ta: "வணக்கம்! 👋 நான் ஆரோக்யமித்ராவின் நட்பான மருத்துவ உதவியாளர். உங்கள் ஆரோக்கியத்தை சிறப்பாக புரிந்துகொள்ள உதவ நான் இங்கே இருக்கிறேன்! 🩺",
-      bn: "নমস্কার! 👋 আমি আরোগ্যমিত্রের বন্ধুত্বপূর্ণ চিকিৎসক সহায়ক। আপনার স্বাস্থ্য ভালোভাবে বুঝতে সাহায্য করার জন্য আমি এখানে আছি! 🩺",
-      es: "¡Hola! 👋 Soy el asistente médico amigable de ArogyaMitra. ¡Estoy aquí para ayudarte a entender mejor tu salud! 🩺",
-      fr: "Bonjour! 👋 Je suis l'assistant médical amical d'ArogyaMitra. Je suis là pour vous aider à mieux comprendre votre santé! 🩺"
-    };
+    const welcomeMessage = useAiDoctor 
+      ? "Hello! 👋 I'm ArogyaMitra's AI Doctor. I'm here to provide medical guidance and support. Please remember that while I can offer helpful information and advice, you should always consult with a licensed healthcare professional for serious medical concerns. How can I help you today? 🩺"
+      : "Hello there! 👋 I'm ArogyaMitra's friendly medical assistant. I'm here to help you understand your health better! Whether you're feeling unwell or just curious about staying healthy, I'm here for you. What would you like to know today? 🩺";
 
     setMessages([{
       id: '1',
-      text: welcomeMessages[selectedLanguage as keyof typeof welcomeMessages] || welcomeMessages.en,
+      text: welcomeMessage,
       sender: 'bot',
-      timestamp: new Date(),
-      language: selectedLanguage
+      timestamp: new Date()
     }]);
-  }, [selectedLanguage]);
+  }, [useAiDoctor]);
+
+  const getMedicalResponse = (userMessage: string): string => {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    if (lowerMessage.includes('fever')) {
+      return "Oh no! 🤒 You have a fever. Don't worry, I'm here to help! Fever means your body is fighting off germs - you're like a superhero inside! 🦸‍♀️\n\n✨ What you can do:\n• Rest like a sleeping bear 🐻\n• Drink lots of water (imagine you're a plant!) 🌱\n• Use a cool cloth on your forehead ❄️\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Paracetamol/Acetaminophen for adults\n• Children's Tylenol for kids (ask parents first!)\n• Ibuprofen for adults only\n\n⚠️ IMPORTANT: Always ask a doctor or grown-up before taking ANY medicine! Call a doctor if fever is over 102°F or lasts more than 3 days.\n\nTell me, do you have any other symptoms? 🤗";
+    } else if (lowerMessage.includes('headache')) {
+      return "Ouch! 😔 Your head hurts! Let's make it feel better together! 🌟\n\n✨ Try these gentle remedies:\n• Rest in a quiet, dark room like a cozy cave 🏠\n• Drink water slowly - your brain needs it! 💧\n• Put a soft, cool cloth on your head 🧊\n• Take deep breaths like you're smelling flowers 🌸\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Paracetamol/Acetaminophen for mild headaches\n• Ibuprofen for adults (not for children under 12)\n• Aspirin for adults only (NEVER for children!)\n\n⚠️ IMPORTANT: NEVER take medicine without asking a doctor or grown-up first! Get emergency help if headache is severe, with neck stiffness, or vision problems.\n\nWhat do you think might have caused your headache? 🤔";
+    } else if (lowerMessage.includes('cold') || lowerMessage.includes('cough')) {
+      return "Achoo! 🤧 You caught a cold! Don't worry, colds are very common and you'll feel better soon! 🌈\n\n✨ Let's fight this cold together:\n• Rest lots - your body is working hard! 😴\n• Drink warm soup (it's like a hug for your throat!) 🍲\n• Honey and warm water can soothe your throat 🍯\n• Breathe steam from a warm shower 🚿\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Cough syrup for persistent cough\n• Saline nasal drops for stuffy nose\n• Pain relievers like Paracetamol for aches\n• Throat lozenges for sore throat (for older kids/adults)\n\n⚠️ IMPORTANT: Always consult a doctor before giving ANY medicine to children! Most colds get better on their own in 7-10 days.\n\nYou should feel better soon! Tell an adult if you feel much worse! 💪";
+    }
+    
+    return "Hello my friend! 😊 I want to help you feel better! Can you tell me more about how you're feeling? 🤗\n\n🌟 To help you better, please tell me:\n• What part of your body doesn't feel good? 👤\n• When did you start feeling this way? ⏰\n• Does anything make it feel better or worse? 🤷‍♀️\n\n💡 Remember: I can suggest medicines, but you must ALWAYS ask a doctor or grown-up before taking ANY medicine! 👨‍⚕️👩‍⚕️\n\nYou're brave for asking about your health! 🦸‍♂️";
+  };
+
+  const callAiDoctor = async (userMessage: string): Promise<string> => {
+    if (!apiKey) {
+      return "Please enter your OpenAI API key to use the AI Doctor feature. 🔑";
+    }
+
+    try {
+      const systemPrompt = `You are ArogyaMitra's AI Doctor, a compassionate and knowledgeable medical assistant. You provide medical guidance in a friendly, empathetic manner while always emphasizing the importance of consulting licensed healthcare professionals for serious concerns.
+
+Key guidelines:
+- Always be empathetic and supportive
+- Provide helpful medical information and general advice
+- Include medicine recommendations when appropriate, but ALWAYS emphasize consulting a doctor first
+- Use emojis and friendly language to make conversations comfortable
+- Ask follow-up questions to better understand symptoms
+- Provide emergency guidance when necessary
+- Remember you're talking to people of all ages, so keep language accessible
+- Always end serious medical advice with "⚠️ Please consult a licensed healthcare professional for proper diagnosis and treatment."`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage }
+          ],
+          max_tokens: 500,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error('AI Doctor API error:', error);
+      return "I'm having trouble connecting right now. Please try again or use the basic medical assistant mode. 😔";
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
@@ -82,69 +115,43 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
       id: Date.now().toString(),
       text: inputText,
       sender: 'user',
-      timestamp: new Date(),
-      language: selectedLanguage
+      timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = inputText;
     setInputText('');
     setIsTyping(true);
 
-    const languageName = languages.find(l => l.code === selectedLanguage)?.name || 'English';
-
     try {
-      const chatCompletion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: `You are ArogyaMitra, a friendly and empathetic AI medical assistant. Your primary goal is to help users understand their health symptoms. You must follow these rules:
-1. Always respond in the user's selected language: **${languageName}**.
-2. Provide simple, clear, and safe general advice.
-3. You can suggest possible over-the-counter remedies, but you MUST ALWAYS strongly emphasize that the user has to consult a real doctor or pharmacist before taking any medication. This is a critical safety instruction.
-4. Use emojis (like 🩺, ❤️, 😊) to make the conversation friendly and approachable.
-5. If a user's query sounds serious (e.g., chest pain, difficulty breathing, severe headache), you must strongly advise them to seek immediate medical attention or contact emergency services.
-6. Begin your response by stating you are an AI assistant, not a real doctor. For example: "As an AI assistant, I'm not a real doctor, but I can offer some general information...".
-7. Do not provide a diagnosis. You can only suggest possibilities based on symptoms.
-8. Keep your responses concise and easy for a non-medical person to understand.`
-          },
-          {
-            role: "user",
-            content: currentInput,
-          },
-        ],
-        model: "llama3-8b-8192",
-      });
-
-      const botResponseText = chatCompletion.choices[0]?.message?.content || "I'm having a little trouble thinking right now. Please try again in a moment.";
-
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: botResponseText,
-        sender: 'bot',
-        timestamp: new Date(),
-        language: selectedLanguage,
-      };
+      let responseText: string;
       
-      setMessages(prev => [...prev, botMessage]);
+      if (useAiDoctor && apiKey) {
+        responseText = await callAiDoctor(inputText);
+      } else {
+        // Simulate delay for basic responses
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        responseText = getMedicalResponse(inputText);
+      }
 
+      const botResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: responseText,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, botResponse]);
     } catch (error) {
-      console.error("Error fetching response from Groq:", error);
-      toast({
-        title: "Connection Error",
-        description: "I'm sorry, I couldn't connect to my brain. Please check your connection and try again.",
-        variant: "destructive",
-      });
+      console.error('Error getting response:', error);
       const errorMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: "I seem to be having trouble connecting. Please check your internet connection and try again. If the problem persists, my circuits might be busy.",
-          sender: 'bot',
-          timestamp: new Date(),
-          language: selectedLanguage,
+        id: (Date.now() + 1).toString(),
+        text: "I'm sorry, I'm having trouble right now. Please try again! 😔",
+        sender: 'bot',
+        timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
-        setIsTyping(false);
+      setIsTyping(false);
     }
   };
 
@@ -167,30 +174,35 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
             <ArrowLeft className="h-4 w-4" />
             Back to Home
           </Button>
-          <div className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-blue-600 animate-pulse" />
-            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-              <SelectTrigger className="w-48 hover:scale-105 transition-transform">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {languages.map(lang => (
-                  <SelectItem key={lang.code} value={lang.code}>
-                    {lang.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
-        {/* Fun Medical Facts Banner */}
-        <div className="mb-6 bg-gradient-to-r from-green-400 to-blue-500 text-white p-4 rounded-lg shadow-lg animate-scale-in">
-          <div className="flex items-center gap-2 mb-2">
-            <Stethoscope className="h-5 w-5 animate-pulse" />
-            <span className="font-bold">💡 Did You Know?</span>
+        {/* AI Doctor Toggle */}
+        <div className="mb-6 bg-gradient-to-r from-purple-400 to-blue-500 text-white p-4 rounded-lg shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Stethoscope className="h-5 w-5" />
+              <span className="font-bold">AI Doctor Mode 🤖</span>
+            </div>
+            <Button
+              onClick={() => setUseAiDoctor(!useAiDoctor)}
+              variant={useAiDoctor ? "secondary" : "outline"}
+              className="bg-white text-purple-600 hover:bg-gray-100"
+            >
+              {useAiDoctor ? "Enabled" : "Enable AI Doctor"}
+            </Button>
           </div>
-          <p className="text-sm">Your heart beats about 100,000 times per day! That's like a super strong drum that never gets tired! 🥁❤️</p>
+          {useAiDoctor && (
+            <div className="mt-3">
+              <Input
+                type="password"
+                placeholder="Enter OpenAI API Key"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="bg-white text-gray-800"
+              />
+              <p className="text-xs mt-1 opacity-80">Required for AI Doctor mode</p>
+            </div>
+          )}
         </div>
 
         {/* Chat Interface */}
@@ -199,7 +211,7 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-6 w-6 animate-bounce" />
               <Heart className="h-5 w-5 text-pink-300 animate-pulse" />
-              Medical ChatBot - ArogyaMitra
+              {useAiDoctor ? "AI Doctor Mode" : "Medical ChatBot"} - ArogyaMitra
               <Heart className="h-5 w-5 text-pink-300 animate-pulse" />
             </CardTitle>
           </CardHeader>
@@ -239,7 +251,9 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
                   <div className="bg-gradient-to-r from-yellow-50 to-green-50 text-gray-800 px-4 py-2 rounded-lg border-2 border-yellow-200 shadow-md">
                     <div className="flex items-center gap-2">
                       <Bot className="h-4 w-4 text-blue-600" />
-                      <span className="text-xs opacity-75">Doctor is thinking... 🤔</span>
+                      <span className="text-xs opacity-75">
+                        {useAiDoctor ? "AI Doctor is thinking... 🤔" : "Doctor is thinking... 🤔"}
+                      </span>
                     </div>
                     <div className="flex space-x-1 mt-2">
                       <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
@@ -259,7 +273,7 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Tell me how you're feeling... 😊"
+                  placeholder={useAiDoctor ? "Describe your symptoms to the AI Doctor... 🩺" : "Tell me how you're feeling... 😊"}
                   className="flex-1 text-lg border-2 border-blue-300 focus:border-purple-400 hover:border-blue-400 transition-colors"
                   disabled={isTyping}
                 />
