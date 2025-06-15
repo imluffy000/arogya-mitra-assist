@@ -1,14 +1,27 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, Phone, Mic, MapPin, Heart, Shield, Baby, Users, Stethoscope, Activity } from "lucide-react";
 import ChatBot from "@/components/ChatBot";
 import EmergencyPortal from "@/components/EmergencyPortal";
 import VoiceAssistant from "@/components/VoiceAssistant";
+import LanguageSelector from "@/components/LanguageSelector";
 
 const Index = () => {
   const [activeFeature, setActiveFeature] = useState<'home' | 'chatbot' | 'emergency' | 'voice'>('home');
+  const [language, setLanguage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const savedLang = localStorage.getItem('arogyaMitraLang');
+    if (savedLang) {
+      setLanguage(savedLang);
+    }
+  }, []);
+
+  const handleLanguageSelect = (langCode: string) => {
+    localStorage.setItem('arogyaMitraLang', langCode);
+    setLanguage(langCode);
+  };
 
   const renderActiveFeature = () => {
     switch (activeFeature) {
@@ -17,11 +30,15 @@ const Index = () => {
       case 'emergency':
         return <EmergencyPortal onBack={() => setActiveFeature('home')} />;
       case 'voice':
-        return <VoiceAssistant onBack={() => setActiveFeature('home')} />;
+        return <VoiceAssistant onBack={() => setActiveFeature('home')} language={language!} />;
       default:
         return <HomePage setActiveFeature={setActiveFeature} />;
     }
   };
+  
+  if (!language) {
+    return <LanguageSelector onSelect={handleLanguageSelect} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-green-50">

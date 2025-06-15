@@ -12,9 +12,10 @@ const groq = new Groq({ apiKey: groqApiKey, dangerouslyAllowBrowser: true });
 
 interface VoiceAssistantProps {
   onBack: () => void;
+  language: string;
 }
 
-const VoiceAssistant = ({ onBack }: VoiceAssistantProps) => {
+const VoiceAssistant = ({ onBack, language }: VoiceAssistantProps) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -89,10 +90,12 @@ Key guidelines:
 - Always be empathetic and supportive.
 - Provide helpful medical information and general advice.
 - Include medicine recommendations when appropriate, but ALWAYS emphasize consulting a doctor first.
-- Use emojis and friendly language to make conversations comfortable and accessible for all ages (including children and seniors).
+- Use friendly language to make conversations comfortable and accessible for all ages (including children and seniors).
 - Ask follow-up questions to better understand symptoms.
 - Provide emergency guidance when necessary.
 - Keep responses concise and clear for voice interaction (under 150 words).
+- You MUST respond in the same language as the user's message.
+- Do NOT use any emojis in your response.
 - Always end serious medical advice with "⚠️ Please consult a licensed healthcare professional for proper diagnosis and treatment."`;
 
       const chatCompletion = await groq.chat.completions.create({
@@ -135,9 +138,12 @@ Key guidelines:
     // Cancel any ongoing speech
     synthRef.current.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    // Remove emojis before speaking
+    const textWithoutEmojis = text.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
+
+    const utterance = new SpeechSynthesisUtterance(textWithoutEmojis);
     
-    utterance.lang = 'en-US';
+    utterance.lang = language;
     utterance.volume = volume;
     utterance.rate = speechRate;
     utterance.pitch = 1.2; // Slightly higher pitch for friendliness
@@ -171,7 +177,7 @@ Key guidelines:
       return;
     }
 
-    recognitionRef.current.lang = 'en-US';
+    recognitionRef.current.lang = language;
     
     try {
       recognitionRef.current.start();
