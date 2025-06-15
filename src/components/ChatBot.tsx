@@ -6,6 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Send, Bot, User, Globe, Heart, Stethoscope } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import Groq from "groq-sdk";
+
+// WARNING: Storing API keys directly in client-side code is insecure and exposes them to anyone who can view your app's source code.
+// For production apps, it is highly recommended to use a backend proxy or serverless function to handle API calls securely.
+const groqApiKey = "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";
+
+const groq = new Groq({
+  apiKey: groqApiKey,
+  dangerouslyAllowBrowser: true, // This is required for client-side API calls.
+});
 
 interface Message {
   id: string;
@@ -65,68 +75,6 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
     }]);
   }, [selectedLanguage]);
 
-  const getMedicalResponse = (userMessage: string, language: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    // Medical responses in different languages
-    const responses = {
-      en: {
-        fever: "Oh no! 🤒 You have a fever. Don't worry, I'm here to help! Fever means your body is fighting off germs - you're like a superhero inside! 🦸‍♀️\n\n✨ What you can do:\n• Rest like a sleeping bear 🐻\n• Drink lots of water (imagine you're a plant!) 🌱\n• Use a cool cloth on your forehead ❄️\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Paracetamol/Acetaminophen for adults\n• Children's Tylenol for kids (ask parents first!)\n• Ibuprofen for adults only\n\n⚠️ IMPORTANT: Always ask a doctor or grown-up before taking ANY medicine! Call a doctor if fever is over 102°F or lasts more than 3 days.\n\nTell me, do you have any other symptoms? 🤗",
-        headache: "Ouch! 😔 Your head hurts! Let's make it feel better together! 🌟\n\n✨ Try these gentle remedies:\n• Rest in a quiet, dark room like a cozy cave 🏠\n• Drink water slowly - your brain needs it! 💧\n• Put a soft, cool cloth on your head 🧊\n• Take deep breaths like you're smelling flowers 🌸\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Paracetamol/Acetaminophen for mild headaches\n• Ibuprofen for adults (not for children under 12)\n• Aspirin for adults only (NEVER for children!)\n\n⚠️ IMPORTANT: NEVER take medicine without asking a doctor or grown-up first! Get emergency help if headache is severe, with neck stiffness, or vision problems.\n\nWhat do you think might have caused your headache? 🤔",
-        cold: "Achoo! 🤧 You caught a cold! Don't worry, colds are very common and you'll feel better soon! 🌈\n\n✨ Let's fight this cold together:\n• Rest lots - your body is working hard! 😴\n• Drink warm soup (it's like a hug for your throat!) 🍲\n• Honey and warm water can soothe your throat 🍯\n• Breathe steam from a warm shower 🚿\n\n💊 Medicine that might help (ONLY with doctor's permission!):\n• Cough syrup for persistent cough\n• Saline nasal drops for stuffy nose\n• Pain relievers like Paracetamol for aches\n• Throat lozenges for sore throat (for older kids/adults)\n\n⚠️ IMPORTANT: Always consult a doctor before giving ANY medicine to children! Most colds get better on their own in 7-10 days.\n\nYou should feel better soon! Tell an adult if you feel much worse! 💪",
-        default: "Hello my friend! 😊 I want to help you feel better! Can you tell me more about how you're feeling? 🤗\n\n🌟 To help you better, please tell me:\n• What part of your body doesn't feel good? 👤\n• When did you start feeling this way? ⏰\n• Does anything make it feel better or worse? 🤷‍♀️\n\n💡 Remember: I can suggest medicines, but you must ALWAYS ask a doctor or grown-up before taking ANY medicine! 👨‍⚕️👩‍⚕️\n\nYou're brave for asking about your health! 🦸‍♂️"
-      },
-      hi: {
-        fever: "अरे! 🤒 आपको बुखार है! चिंता मत करो, मैं आपकी मदद करूंगा! 🦸‍♀️\n\n✨ आप यह कर सकते हैं:\n• भालू की तरह आराम करें 🐻\n• खूब पानी पिएं 🌱\n• माथे पर ठंडा कपड़ा रखें ❄️\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• पैरासिटामोल बड़ों के लिए\n• बच्चों के लिए बच्चों वाली दवा\n• इबुप्रोफेन केवल बड़ों के लिए\n\n⚠️ महत्वपूर्ण: कोई भी दवा लेने से पहले हमेशा डॉक्टर से पूछें! 🚨",
-        headache: "अरे! 😔 आपके सिर में दर्द है! 🌟\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• पैरासिटामोल हल्के सिरदर्द के लिए\n• इबुप्रोफेन केवल बड़ों के लिए\n\n⚠️ महत्वपूर्ण: दवा लेने से पहले डॉक्टर से पूछें! 🚨",
-        cold: "हैं-ची! 🤧 आपको सर्दी-जुकाम हुआ है! 🌈\n\n💊 दवाइयाँ जो मदद कर सकती हैं (केवल डॉक्टर की अनुमति से!):\n• खांसी की दवा\n• नाक की बूंदें\n• पैरासिटामोल दर्द के लिए\n\n⚠️ महत्वपूर्ण: बच्चों को कोई भी दवा देने से पहले डॉक्टर से सलाह लें! 🚨",
-        default: "नमस्ते मेरे दोस्त! 😊 💡 याद रखें: मैं दवाइयों का सुझाव दे सकता हूँ, लेकिन कोई भी दवा लेने से पहले हमेशा डॉक्टर से पूछें! 👨‍⚕️👩‍⚕️"
-      },
-      te: {
-        fever: "అయ్యో! 🤒 మీకు జ్వరం వచ్చిందా! 🦸‍♀️\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• పెరాసిటమాల్ పెద్దలకు\n• పిల్లలకు పిల్లల మందు\n\n⚠️ ముఖ్యం: ఏ మందు అయినా తీసుకునే ముందు డాక్టర్‌ని అడగండి! 🚨",
-        headache: "అయ్యో! 😔 తల నొప్పిగా ఉందా! 🌟\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• పెరాసిటమాల్ తేలికపాటి తలనొప్పికి\n\n⚠️ ముఖ్యం: మందు తీసుకునే ముందు డాక్టర్‌ని అడగండి! 🚨",
-        cold: "దగ్ గుమ్! 😷 🌪️\n\n💊 సహాయపడే మందులు (వైద్యుని అనుమతితో మాత్రమే!):\n• దగ్గు మందు\n• గొంతు మాత్రలు\n\n⚠️ ముఖ్యం: పిల్లలకు ఏ మందు అయినా ఇవ్వడానికి ముందు డాక్టర్‌ని సంప్రదించండి! 🚨",
-        default: "నమస్కారం ధైర్యవంతుడా! 😊 💡 గుర్తుంచుకోండి: నేను మందులను సూచించగలను, కానీ ఏదైనా మందు తీసుకునే ముందు ఎల్లప్పుడూ డాక్టర్‌ని అడగాలి! 👨‍⚕️👩‍⚕️"
-      },
-      ta: {
-        fever: "அய்யோ! 🤒 உங்களுக்கு காய்ச்சல் வந்துள்ளது! 🦸‍♀️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனுமதியுடன் மட்டுமே!):\n• பாராசிட்டமால் பெரியவர்களுக்கு\n• குழந்தைகளுக்கு குழந்தைகள் மருந்து\n\n⚠️ முக்கியம்: எந்த மருந்தும் எடுக்கும் முன் மருத்துவரிடம் கேளுங்கள்! 🚨",
-        headache: "அய்யோ! 😔 தலைவலி இருக்கிறதா! 🌟\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனுமதியுடன் மட்டுமே!):\n• பாராசிட்டமால் லேசான தலைவலிக்கு\n\n⚠️ முக்கியம்: மருந்து எடுக்கும் முன் மருத்துவரிடம் கேளுங்கள்! 🚨",
-        cold: "இருமல்! 😷 🌪️\n\n💊 உதவக்கூடிய மருந்துகள் (மருத்துவர் அனுமதியுடன் மட்டுமே!):\n• இருமல் மருந்து\n• தொண்டை மாத்திரைகள்\n\n⚠️ முக்கியம்: குழந்தைகளுக்கு எந்த மருந்தும் கொடுக்கும் முன் மருத்துவரை அணுகவும்! 🚨",
-        default: "வணக்கம் சாहசமான நண்பரே! 😊 💡 நினைவில் வைக்கவும்: நான் மருந்துகளை பரிந்துரைக்க முடியும், ஆனால் எந்த மருந்தும் எடுக்கும் முன் எப்போதும் மருத்துவரிடம் கேட்க வேண்டும்! 👨‍⚕️👩‍⚕️"
-      },
-      bn: {
-        fever: "হায়! 🤒 আপনার জ্বর হয়েছে! 🦸‍♀️\n\n💊 সাহায্যকারী ওষুধ (শুধুমাত্র ডাক্তারের অনুমতিতে!):\n• প্যারাসিটামল বড়দের জন্য\n• শিশুদের জন্য শিশুদের ওষুধ\n\n⚠️ গুরুত্বপূর্ণ: কোনো ওষুধ খাওয়ার আগে সবসময় ডাক্তারকে জিজ্ঞাসা করুন! 🚨",
-        headache: "আহ! 😔 মাথাব্যথা হচ্ছে! 🌟\n\n💊 সাহায্যকারী ওষুধ (শুধুমাত্র ডাক্তারের অনুমতিতে!):\n• প্যারাসিটামল হালকা মাথাব্যথার জন্য\n\n⚠️ গুরুত্বপূর্ণ: ওষুধ খাওয়ার আগে ডাক্তারকে জিজ্ঞাসা করুন! 🚨",
-        cold: "কাশি! 😷 🌪️\n\n💊 সাহায্যকারী ওষুধ (শুধুমাত্র ডাক্তারের অনুমতিতে!):\n• কাশির ওষুধ\n• গলার ট্যাবলেট\n\n⚠️ গুরুত্বপূর্ণ: শিশুদের কোনো ওষুধ দেওয়ার আগে ডাক্তারের সাথে পরামর্শ করুন! 🚨",
-        default: "নমস্কার সাহসী বন্ধু! 😊 💡 মনে রাখবেন: আমি ওষুধের পরামর্শ দিতে পারি, তবে কোনো ওষুধ খাওয়ার আগে সবসময় ডাক্তারকে জিজ্ঞাসা করতে হবে! 👨‍⚕️👩‍⚕️"
-      },
-      es: {
-        fever: "¡Oh no! 🤒 ¡Tienes fiebre! 🦸‍♀️\n\n💊 Medicinas que pueden ayudar (¡SOLO con permiso del doctor!):\n• Paracetamol para adultos\n• Medicina para niños\n\n⚠️ IMPORTANTE: ¡Siempre pregunta a un doctor antes de tomar cualquier medicina! 🚨",
-        headache: "¡Ay! 😔 ¡Te duele la cabeza! 🌟\n\n💊 Medicinas que pueden ayudar (¡SOLO con permiso del doctor!):\n• Paracetamol para dolores leves\n\n⚠️ IMPORTANTE: ¡Pregunta al doctor antes de tomar medicina! 🚨",
-        cold: "¡Achís! 🤧 🌈\n\n💊 Medicinas que pueden ayudar (¡SOLO con permiso del doctor!):\n• Jarabe para la tos\n• Pastillas para la garganta\n\n⚠️ IMPORTANTE: ¡Consulta a un doctor antes de dar cualquier medicina a los niños! 🚨",
-        default: "¡Hola amigo valiente! 😊 💡 Recuerda: ¡Puedo sugerir medicinas, pero siempre debes preguntar a un doctor antes de tomar CUALQUIER medicina! 👨‍⚕️👩‍⚕️"
-      },
-      fr: {
-        fever: "Oh là là! 🤒 Tu as de la fièvre! 🦸‍♀️\n\n💊 Médicaments qui peuvent aider (SEULEMENT avec permission du docteur!):\n• Paracétamol pour les adultes\n• Médicament pour enfants\n\n⚠️ IMPORTANT: Demande toujours à un docteur avant de prendre des médicaments! 🚨",
-        headache: "Aïe! 😔 Tu as mal à la tête! 🌟\n\n💊 Médicaments qui peuvent aider (SEULEMENT avec permission du docteur!):\n• Paracétamol pour les douleurs légères\n\n⚠️ IMPORTANT: Demande au docteur avant de prendre des médicaments! 🚨",
-        cold: "Atchoum! 🤧 🌈\n\n💊 Médicaments qui peuvent aider (SEULEMENT avec permission du docteur!):\n• Sirop contre la toux\n• Pastilles pour la gorge\n\n⚠️ IMPORTANT: Consulte un docteur avant de donner des médicaments aux enfants! 🚨",
-        default: "Bonjour ami courageux! 😊 💡 Souviens-toi: Je peux suggérer des médicaments, mais tu dois TOUJOURS demander à un docteur avant de prendre des médicaments! 👨‍⚕️👩‍⚕️"
-      }
-    };
-
-    const languageResponses = responses[language as keyof typeof responses] || responses.en;
-    
-    if (lowerMessage.includes('fever') || lowerMessage.includes('बुखार') || lowerMessage.includes('జ్వరం') || lowerMessage.includes('காய்ச்சல்') || lowerMessage.includes('জ্বর') || lowerMessage.includes('fiebre') || lowerMessage.includes('fièvre')) {
-      return languageResponses.fever;
-    } else if (lowerMessage.includes('headache') || lowerMessage.includes('सिरदर्द') || lowerMessage.includes('తలనొప్పి') || lowerMessage.includes('தலைவலி') || lowerMessage.includes('মাথাব্যথা') || lowerMessage.includes('dolor de cabeza') || lowerMessage.includes('mal de tête')) {
-      return languageResponses.headache;
-    } else if (lowerMessage.includes('cold') || lowerMessage.includes('cough') || lowerMessage.includes('सर्दी') || lowerMessage.includes('खांसी') || lowerMessage.includes('జలుబు') || lowerMessage.includes('దగ్గు') || lowerMessage.includes('சளி') || lowerMessage.includes('இருமல்') || lowerMessage.includes('সর্দি') || lowerMessage.includes('কাশি') || lowerMessage.includes('resfriado') || lowerMessage.includes('tos') || lowerMessage.includes('rhume') || lowerMessage.includes('toux')) {
-      return languageResponses.cold;
-    }
-    
-    return languageResponses.default;
-  };
-
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
@@ -139,22 +87,65 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputText;
     setInputText('');
     setIsTyping(true);
 
-    // Simulate bot response delay
-    setTimeout(() => {
-      const botResponse: Message = {
+    const languageName = languages.find(l => l.code === selectedLanguage)?.name || 'English';
+
+    try {
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: `You are ArogyaMitra, a friendly and empathetic AI medical assistant. Your primary goal is to help users understand their health symptoms. You must follow these rules:
+1. Always respond in the user's selected language: **${languageName}**.
+2. Provide simple, clear, and safe general advice.
+3. You can suggest possible over-the-counter remedies, but you MUST ALWAYS strongly emphasize that the user has to consult a real doctor or pharmacist before taking any medication. This is a critical safety instruction.
+4. Use emojis (like 🩺, ❤️, 😊) to make the conversation friendly and approachable.
+5. If a user's query sounds serious (e.g., chest pain, difficulty breathing, severe headache), you must strongly advise them to seek immediate medical attention or contact emergency services.
+6. Begin your response by stating you are an AI assistant, not a real doctor. For example: "As an AI assistant, I'm not a real doctor, but I can offer some general information...".
+7. Do not provide a diagnosis. You can only suggest possibilities based on symptoms.
+8. Keep your responses concise and easy for a non-medical person to understand.`
+          },
+          {
+            role: "user",
+            content: currentInput,
+          },
+        ],
+        model: "llama3-8b-8192",
+      });
+
+      const botResponseText = chatCompletion.choices[0]?.message?.content || "I'm having a little trouble thinking right now. Please try again in a moment.";
+
+      const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: getMedicalResponse(inputText, selectedLanguage),
+        text: botResponseText,
         sender: 'bot',
         timestamp: new Date(),
-        language: selectedLanguage
+        language: selectedLanguage,
       };
+      
+      setMessages(prev => [...prev, botMessage]);
 
-      setMessages(prev => [...prev, botResponse]);
-      setIsTyping(false);
-    }, 2000);
+    } catch (error) {
+      console.error("Error fetching response from Groq:", error);
+      toast({
+        title: "Connection Error",
+        description: "I'm sorry, I couldn't connect to my brain. Please check your connection and try again.",
+        variant: "destructive",
+      });
+      const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: "I seem to be having trouble connecting. Please check your internet connection and try again. If the problem persists, my circuits might be busy.",
+          sender: 'bot',
+          timestamp: new Date(),
+          language: selectedLanguage,
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+        setIsTyping(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
