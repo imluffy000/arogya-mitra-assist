@@ -1,4 +1,3 @@
-
 const GROQ_API_KEY = "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";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -22,7 +21,7 @@ const PROMPTS = {
   symptom_checker: SYMPTOM_CHECKER_PROMPT,
 };
 
-export const getAiResponse = async (userMessage: string, language: string, type: keyof typeof PROMPTS): Promise<string> => {
+export const getAiResponse = async (userMessage: string, language: string, type: keyof typeof PROMPTS = 'symptom_checker'): Promise<string> => {
   const systemPrompt = PROMPTS[type];
   try {
     const response = await fetch(GROQ_API_URL, {

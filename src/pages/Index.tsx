@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Mic, MapPin, Heart, Baby, Users, Stethoscope, Activity, BrainCircuit } from "lucide-react";
+import { MessageCircle, Mic, Heart, Baby, Users, Stethoscope, Activity, BrainCircuit } from "lucide-react";
 import ChatBot from "@/components/ChatBot";
 import VoiceAssistant from "@/components/VoiceAssistant";
 import LanguageSelector from '@/components/LanguageSelector';
@@ -153,12 +152,7 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
         <h2 className="text-4xl font-bold text-gray-700 mb-8 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
           Why Choose ArogyaMitra?
         </h2>
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <div className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl shadow-lg hover:shadow-xl transition-shadow hover:scale-105 transform duration-300">
-            <MapPin className="h-16 w-16 text-blue-500 mx-auto mb-4 animate-pulse" />
-            <h3 className="text-xl font-semibold mb-3 text-blue-700">Location Services</h3>
-            <p className="text-gray-600">Find nearby hospitals and pharmacies.</p>
-          </div>
+        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           <div className="p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl shadow-lg hover:shadow-xl transition-shadow hover:scale-105 transform duration-300">
             <MessageCircle className="h-16 w-16 text-green-500 mx-auto mb-4 animate-pulse" />
             <h3 className="text-xl font-semibold mb-3 text-green-700">Multilingual Support</h3>
@@ -186,7 +180,6 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
             <ul className="space-y-2 text-sm text-gray-600">
               <li>• Fun and interactive health tips</li>
               <li>• Child-friendly medical advice</li>
-              <li>• Emergency contacts for parents</li>
             </ul>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
@@ -197,7 +190,6 @@ const HomePage = ({ setActiveFeature }: { setActiveFeature: (feature: 'home' | '
             <ul className="space-y-2 text-sm text-gray-600">
               <li>• Easy-to-use voice commands</li>
               <li>• Large text and clear visuals</li>
-              <li>• Reminders for medication</li>
             </ul>
           </div>
         </div>
