@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,13 +102,13 @@ const ChatBot = ({ onBack }: ChatBotProps) => {
       es: {
         fever: "¡Oh no! 🤒 ¡Tienes fiebre! 🦸‍♀️\n\n💊 Medicinas que pueden ayudar (¡SOLO con permiso del doctor!):\n• Paracetamol para adultos\n• Medicina para niños\n\n⚠️ IMPORTANTE: ¡Siempre pregunta a un doctor antes de tomar cualquier medicina! 🚨",
         headache: "¡Ay! 😔 ¡Te duele la cabeza! 🌟\n\n💊 Medicinas que pueden ayudar (¡SOLO con permiso del doctor!):\n• Paracetamol para dolores leves\n\n⚠️ IMPORTANTE: ¡Pregunta al doctor antes de tomar medicina! 🚨",
-        cough: "¡Achís! 🤧 🌈\n\n💊 Medicinas que pueden ayudar (¡SOLO con permiso del doctor!):\n• Jarabe para la tos\n• Pastillas para la garganta\n\n⚠️ IMPORTANTE: ¡Consulta a un doctor antes de dar cualquier medicina a los niños! 🚨",
+        cold: "¡Achís! 🤧 🌈\n\n💊 Medicinas que pueden ayudar (¡SOLO con permiso del doctor!):\n• Jarabe para la tos\n• Pastillas para la garganta\n\n⚠️ IMPORTANTE: ¡Consulta a un doctor antes de dar cualquier medicina a los niños! 🚨",
         default: "¡Hola amigo valiente! 😊 💡 Recuerda: ¡Puedo sugerir medicinas, pero siempre debes preguntar a un doctor antes de tomar CUALQUIER medicina! 👨‍⚕️👩‍⚕️"
       },
       fr: {
         fever: "Oh là là! 🤒 Tu as de la fièvre! 🦸‍♀️\n\n💊 Médicaments qui peuvent aider (SEULEMENT avec permission du docteur!):\n• Paracétamol pour les adultes\n• Médicament pour enfants\n\n⚠️ IMPORTANT: Demande toujours à un docteur avant de prendre des médicaments! 🚨",
         headache: "Aïe! 😔 Tu as mal à la tête! 🌟\n\n💊 Médicaments qui peuvent aider (SEULEMENT avec permission du docteur!):\n• Paracétamol pour les douleurs légères\n\n⚠️ IMPORTANT: Demande au docteur avant de prendre des médicaments! 🚨",
-        cough: "Atchoum! 🤧 🌈\n\n💊 Médicaments qui peuvent aider (SEULEMENT avec permission du docteur!):\n• Sirop contre la toux\n• Pastilles pour la gorge\n\n⚠️ IMPORTANT: Consulte un docteur avant de donner des médicaments aux enfants! 🚨",
+        cold: "Atchoum! 🤧 🌈\n\n💊 Médicaments qui peuvent aider (SEULEMENT avec permission du docteur!):\n• Sirop contre la toux\n• Pastilles pour la gorge\n\n⚠️ IMPORTANT: Consulte un docteur avant de donner des médicaments aux enfants! 🚨",
         default: "Bonjour ami courageux! 😊 💡 Souviens-toi: Je peux suggérer des médicaments, mais tu dois TOUJOURS demander à un docteur avant de prendre des médicaments! 👨‍⚕️👩‍⚕️"
       }
     };
