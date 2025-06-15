@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,18 @@ interface VoiceAssistantProps {
   onBack: () => void;
   language: string;
 }
+
+const languageMap: { [key: string]: string } = {
+  'en-IN': 'English',
+  'hi-IN': 'Hindi',
+  'bn-IN': 'Bengali',
+  'te-IN': 'Telugu',
+  'mr-IN': 'Marathi',
+  'ta-IN': 'Tamil',
+  'gu-IN': 'Gujarati',
+  'kn-IN': 'Kannada',
+  'ml-IN': 'Malayalam',
+};
 
 const VoiceAssistant = ({ onBack, language }: VoiceAssistantProps) => {
   const [isListening, setIsListening] = useState(false);
@@ -87,6 +100,7 @@ const VoiceAssistant = ({ onBack, language }: VoiceAssistantProps) => {
 
   const callAiDoctor = async (userMessage: string): Promise<string> => {
     try {
+      const currentLanguageName = languageMap[language] || 'English';
       const systemPrompt = `You are ArogyaMitra's AI Doctor, a compassionate and knowledgeable medical assistant powered by Llama 3. You provide medical guidance in a friendly, empathetic manner while always emphasizing the importance of consulting licensed healthcare professionals for serious concerns.
 
 Key guidelines:
@@ -97,7 +111,7 @@ Key guidelines:
 - Ask follow-up questions to better understand symptoms.
 - Provide emergency guidance when necessary.
 - Keep responses concise and clear for voice interaction (under 150 words).
-- You MUST respond in the same language as the user's message.
+- You MUST respond in ${currentLanguageName}. The user's query is in ${currentLanguageName}. Do not switch to English unless the user does.
 - Do NOT use any emojis in your response.
 - Always end serious medical advice with "⚠️ Please consult a licensed healthcare professional for proper diagnosis and treatment."`;
 
